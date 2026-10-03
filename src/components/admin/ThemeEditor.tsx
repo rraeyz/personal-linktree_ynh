@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FaPalette, FaSave, FaUndo } from 'react-icons/fa'
 import { THEME_PRESETS, FONT_FAMILIES, BORDER_RADIUS_OPTIONS, BUTTON_STYLES, ANIMATION_SPEEDS, BACKGROUND_TYPES } from '@/lib/themes'
+import ImageUploadButton from './ImageUploadButton'
 
 interface ThemeEditorProps {
   initialProfile: any
@@ -349,9 +350,12 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
         {backgroundType === 'image' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Arkaplan Görsel URL</label>
+              <label className="block text-sm text-gray-400 mb-2">Arkaplan Görseli</label>
+              <div className="mb-2">
+                <ImageUploadButton kind="background" onUploaded={setBackgroundImage} label="Görsel Yükle" />
+              </div>
               <input
-                type="url"
+                type="text"
                 value={backgroundImage}
                 onChange={(e) => setBackgroundImage(e.target.value)}
                 placeholder="https://example.com/background.jpg"

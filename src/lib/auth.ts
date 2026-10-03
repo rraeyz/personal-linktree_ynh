@@ -22,7 +22,7 @@ const globalForAuth = globalThis as unknown as { fallbackJwtSecret?: string }
 // JWT_SECRET her çağrıda okunur: setup sihirbazı process.env'i runtime'da günceller.
 // Secret yoksa sabit bir değere DÜŞMEYİZ; process'e özel rastgele bir secret üretilir
 // (restart sonrası oturumlar düşer ama kimse token taklit edemez).
-function getJwtSecret(): string {
+export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
   if (secret && !PLACEHOLDER_VALUES.has(secret)) return secret
   if (!globalForAuth.fallbackJwtSecret) {
