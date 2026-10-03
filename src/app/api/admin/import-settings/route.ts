@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
       backgroundType: settings.profile.backgroundType || 'gradient-blur',
       backgroundImage: settings.profile.backgroundImage || '',
       backgroundOpacity: settings.profile.backgroundOpacity ?? 100,
+      coverImage: settings.profile.coverImage || '',
+      layout: settings.profile.layout === 'grid' ? 'grid' : 'classic',
       darkMode: settings.profile.darkMode ?? true,
       analyticsRetentionDays: settings.profile.analyticsRetentionDays ?? 90,
       // SMTP Settings
@@ -104,6 +106,11 @@ export async function POST(request: NextRequest) {
             passwordHint: link.passwordHint || '',
             startDate: link.startDate ? new Date(link.startDate) : null,
             endDate: link.endDate ? new Date(link.endDate) : null,
+            featured: !!link.featured,
+            thumbnail: typeof link.thumbnail === 'string' ? link.thumbnail : '',
+            description: typeof link.description === 'string' ? link.description : '',
+            images: typeof link.images === 'string' ? link.images : '',
+            targetDate: link.targetDate ? new Date(link.targetDate) : null,
             clicks: 0,
             password: '', // Güvenlik için şifreler içe aktarılmaz
           },

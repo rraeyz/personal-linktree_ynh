@@ -8,14 +8,18 @@ Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası
 
 **Ziyaretçi sayfası**
 - Açık/koyu mod (admin panelinde seçilen tema renklerini korur, sayfa yenilenince yanıp sönmez)
-- 8 hazır tema, renk, yazı tipi, köşe yuvarlaklığı, arka plan (düz, gradient, parçacık, mesh, görsel)
-- Kategorili linkler, sosyal medya ikonları, YouTube/X/Instagram gömme
+- 8 hazır tema; renk, 5 yazı tipi (Türkçe karakter destekli, sunucudan servis edilir), buton stili (gradient/düz/çerçeve/cam), köşe yuvarlaklığı, arka plan (düz, gradient, parçacık, mesh, görsel)
+- Kapak görseli ve iki düzen: klasik liste veya bento ızgara
+- Bloklar: link, iletişim formu, bağış, metin, portfolyo kartı, geri sayım, galeri (tam ekran görüntüleyici), Spotify, YouTube/X/Instagram gömme
+- Öne çıkan link (animasyonlu çerçeve) ve link önizleme görseli (yükleme veya siteden otomatik alma)
+- Kategoriler, sosyal medya ikonları
 - Şifreli linkler (URL sayfa kaynağında görünmez), zamanlanmış linkler, kısa linkler (`/go/<slug>`)
 - İletişim formu, bülten aboneliği, paylaş butonu, isteğe bağlı "Rehbere Ekle" (vCard)
 - SEO: başlık/açıklama, Open Graph görseli, favicon, `robots.txt`, `sitemap.xml`
 
 **Admin paneli** (`/admin`)
-- Profil, linkler (sürükle-bırak sıralama), tema, QR kod
+- Profil, linkler ve bloklar (sürükle-bırak sıralama), tema ve düzen, QR kod
+- Canlı önizleme: telefon çerçevesinde site, her kayıttan sonra kendiliğinden yenilenir
 - Görsel yükleme: otomatik boyutlandırma, EXIF/konum bilgisi silinir
 - Analitik: profil görüntülenme, tekil ziyaretçi, etkileşim oranı, tıklamalar, cihaz/tarayıcı/ülke, trafik kaynakları, UTM kampanyaları, CSV dışa aktarma, saklama süresi
 - Bülten: abone yönetimi, toplu e-posta (kişiye özel "abonelikten çık" linki), tekil e-posta, e-posta imzası

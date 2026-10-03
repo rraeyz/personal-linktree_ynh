@@ -24,6 +24,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
   const [backgroundType, setBackgroundType] = useState(initialProfile?.backgroundType || 'gradient-blur')
   const [backgroundImage, setBackgroundImage] = useState(initialProfile?.backgroundImage || '')
   const [backgroundOpacity, setBackgroundOpacity] = useState(initialProfile?.backgroundOpacity || 100)
+  const [layout, setLayout] = useState<string>(initialProfile?.layout || 'classic')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
@@ -69,6 +70,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
           backgroundType,
           backgroundImage,
           backgroundOpacity,
+          layout,
         }),
       })
 
@@ -114,6 +116,37 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
           <FaUndo className="w-4 h-4" />
           Sıfırla
         </button>
+      </div>
+
+      {/* Sayfa Düzeni */}
+      <div className="p-6 bg-dark-card rounded-xl border border-gray-800">
+        <h3 className="text-lg font-semibold text-white mb-1">Sayfa Düzeni</h3>
+        <p className="text-sm text-gray-400 mb-4">Linkler ve blokların ana sayfada nasıl dizileceği</p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { value: 'classic', label: 'Klasik liste', description: 'Alt alta geniş butonlar' },
+            { value: 'grid', label: 'Bento ızgara', description: 'Linkler ikişerli kutular; metin, galeri ve öne çıkanlar tam genişlik' },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setLayout(option.value)}
+              className={`p-4 rounded-lg border-2 text-left transition-all ${
+                layout === option.value ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 hover:border-gray-600 bg-dark-bg'
+              }`}
+            >
+              <div className="flex gap-1 mb-3" aria-hidden="true">
+                {option.value === 'classic' ? (
+                  <div className="w-full space-y-1">{[0, 1, 2].map((i) => <div key={i} className="h-2 rounded bg-gray-600" />)}</div>
+                ) : (
+                  <div className="w-full grid grid-cols-2 gap-1">{[0, 1, 2, 3].map((i) => <div key={i} className={`h-4 rounded bg-gray-600 ${i === 0 ? 'col-span-2 h-2' : ''}`} />)}</div>
+                )}
+              </div>
+              <div className="text-sm font-medium text-white">{option.label}</div>
+              <div className="text-xs text-gray-500 mt-1">{option.description}</div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Hazır Temalar */}

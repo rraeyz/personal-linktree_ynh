@@ -11,13 +11,17 @@ const problems = []
 const browser = await chromium.launch()
 const watch = (page, tag) => {
   page.on('pageerror', (e) => problems.push(`${tag} sayfa hatası: ${e.message}`))
-  page.on('console', (m) => m.type() === 'error' && problems.push(`${tag} konsol: ${m.text()}`))
+  // Spotify gibi üçüncü taraf iframe'lerin kendi hataları (ör. CI'da ağ) uygulama hatası sayılmaz
+  page.on('console', (m) => m.type() === 'error' && !m.location()?.url?.includes('spotify') && problems.push(`${tag} konsol: ${m.text()}`))
   page.on('response', (r) => r.status() >= 500 && problems.push(`${tag} ${r.status()} ${r.url()}`))
 }
 
 for (const mode of ['dark', 'light']) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 800 } })
-  await ctx.addInitScript((m) => localStorage.setItem('theme', m), mode)
+  // Sadece ana çerçevede (iframe'lerde, ör. Spotify, localStorage erişimi olmayabilir)
+  await ctx.addInitScript((m) => {
+    try { if (window === window.top) localStorage.setItem('theme', m) } catch {}
+  }, mode)
   const page = await ctx.newPage()
   watch(page, `ana sayfa (${mode})`)
   await page.goto(B + '/', { waitUntil: 'networkidle' })
@@ -44,6 +48,10 @@ for (const mode of ['dark', 'light']) {
   await page.fill('input[type="text"]', 'admin')
   await page.fill('input[type="password"]', PASSWORD)
   await Promise.all([page.waitForURL('**/admin/dashboard', { timeout: 15000 }), page.click('button[type="submit"]')])
+  // Canlı önizleme açılmalı ve siteyi göstermeli
+  await page.getByRole('button', { name: 'Önizleme' }).click()
+  await page.frameLocator('iframe[title="Site önizlemesi"]').locator('h1').first().waitFor({ timeout: 15000 })
+
   for (const tab of ['Profil Ayarları', 'Link Yönetimi', 'Analytics', 'Aboneler', 'Özel E-posta', 'QR Kod', 'Tema', 'Ayarlar']) {
     await page.getByRole('button', { name: tab, exact: true }).click()
     await page.waitForTimeout(700)

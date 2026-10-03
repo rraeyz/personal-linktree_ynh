@@ -9,7 +9,7 @@ export const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'pu
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB (yükleme sonrası zaten küçültülüyor)
 
-type UploadKind = 'avatar' | 'favicon' | 'og' | 'background' | 'icon'
+type UploadKind = 'avatar' | 'favicon' | 'og' | 'background' | 'icon' | 'cover' | 'thumb' | 'gallery'
 
 const PRESETS: Record<UploadKind, { process: (img: sharp.Sharp) => sharp.Sharp; ext: 'webp' | 'png' | 'jpg' }> = {
   // Profil fotoğrafı: kare, 512px
@@ -22,6 +22,12 @@ const PRESETS: Record<UploadKind, { process: (img: sharp.Sharp) => sharp.Sharp; 
   background: { process: (img) => img.resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }), ext: 'webp' },
   // Özel link ikonu: 128px PNG
   icon: { process: (img) => img.resize(128, 128, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png(), ext: 'png' },
+  // Profil kapak görseli (banner): 1500x500
+  cover: { process: (img) => img.resize(1500, 500, { fit: 'cover' }).webp({ quality: 82 }), ext: 'webp' },
+  // Link önizleme / portfolyo kartı görseli
+  thumb: { process: (img) => img.resize(800, 450, { fit: 'cover' }).webp({ quality: 82 }), ext: 'webp' },
+  // Galeri görseli: en fazla 1600px
+  gallery: { process: (img) => img.resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }), ext: 'webp' },
 }
 
 export function isUploadKind(value: unknown): value is UploadKind {
@@ -60,7 +66,7 @@ export async function saveUploadedImage(buffer: Buffer, kind: UploadKind): Promi
 
 export class UploadError extends Error {}
 
-const FILE_NAME_PATTERN = /^(avatar|favicon|og|background|icon)-[0-9a-f-]{36}\.(webp|png|jpg)$/
+const FILE_NAME_PATTERN = /^(avatar|favicon|og|background|icon|cover|thumb|gallery)-[0-9a-f-]{36}\.(webp|png|jpg)$/
 
 const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',

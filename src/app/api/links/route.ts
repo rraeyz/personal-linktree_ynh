@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
-import { buildLinkData } from '@/lib/links'
+import { buildLinkData, isUrlRequired } from '@/lib/links'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,8 +30,12 @@ export async function POST(request: Request) {
 
     const body = await request.json()
 
-    if (!body.title || !body.url) {
-      return NextResponse.json({ error: 'Başlık ve URL gerekli' }, { status: 400 })
+    const type = String(body.type || 'link')
+    if (!body.title) {
+      return NextResponse.json({ error: 'Başlık gerekli' }, { status: 400 })
+    }
+    if (isUrlRequired(type) && !body.url) {
+      return NextResponse.json({ error: 'URL gerekli' }, { status: 400 })
     }
 
     const result = await buildLinkData({ type: 'link', ...body, order: undefined, enabled: undefined })
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
         icon: 'FaLink',
         ...result.data,
         title: result.data.title,
-        url: result.data.url,
+        url: result.data.url ?? '',
         order: (maxOrderLink?.order || 0) + 1,
       },
     })

@@ -22,6 +22,7 @@ export async function PUT(request: NextRequest) {
       backgroundType,
       backgroundImage,
       backgroundOpacity,
+      layout,
     } = await request.json()
 
     // İlk profili bul ve güncelle
@@ -47,6 +48,8 @@ export async function PUT(request: NextRequest) {
         backgroundType: backgroundType || 'gradient-blur',
         backgroundImage: backgroundImage || '',
         backgroundOpacity: backgroundOpacity !== undefined ? backgroundOpacity : 100,
+        // Sayfa düzeni: classic (liste) | grid (bento ızgara); gönderilmezse değişmez
+        ...(layout !== undefined ? { layout: layout === 'grid' ? 'grid' : 'classic' } : {}),
       },
     })
 

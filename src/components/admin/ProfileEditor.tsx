@@ -14,6 +14,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
   const [name, setName] = useState(initialProfile?.name || 'Your Name')
   const [bio, setBio] = useState(initialProfile?.bio || 'Your bio goes here')
   const [imageUrl, setImageUrl] = useState(initialProfile?.imageUrl || '/default-avatar.jpg')
+  const [coverImage, setCoverImage] = useState(initialProfile?.coverImage || '')
   const [pageTitle, setPageTitle] = useState(initialProfile?.pageTitle || '')
   const [pageDescription, setPageDescription] = useState(initialProfile?.pageDescription || '')
   const [ogImageUrl, setOgImageUrl] = useState(initialProfile?.ogImageUrl || '')
@@ -42,6 +43,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           name, 
           bio, 
           imageUrl,
+          coverImage,
           contactEmail,
           contactPhone,
           contactAddress,
@@ -163,6 +165,29 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           
           <p className="text-xs text-gray-500 mt-2">
             Maksimum 10MB • JPG, PNG, WEBP, GIF • Otomatik olarak 512x512 boyutuna küçültülür
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Kapak Görseli (opsiyonel)
+          </label>
+          {coverImage && (
+            <div className="relative mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={coverImage} alt="Kapak önizleme" className="w-full aspect-[3/1] object-cover rounded-xl border border-gray-700" />
+              <button
+                type="button"
+                onClick={() => setCoverImage('')}
+                className="absolute top-2 right-2 px-3 py-1 text-xs bg-black/70 text-white rounded-lg hover:bg-black/90"
+              >
+                Kaldır
+              </button>
+            </div>
+          )}
+          <ImageUploadButton kind="cover" onUploaded={setCoverImage} label="Kapak Görseli Yükle" />
+          <p className="text-xs text-gray-500 mt-2">
+            Profil fotoğrafınızın arkasında geniş bir banner olarak görünür • Otomatik olarak 1500x500 boyutuna kırpılır
           </p>
         </div>
 

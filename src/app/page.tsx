@@ -9,6 +9,12 @@ import ThemeToggle from '@/components/ThemeToggle'
 import ThemeScript from '@/components/ThemeScript'
 import ViewTracker from '@/components/ViewTracker'
 import SocialIcons from '@/components/SocialIcons'
+import TextBlock from '@/components/blocks/TextBlock'
+import GalleryBlock from '@/components/blocks/GalleryBlock'
+import SpotifyBlock from '@/components/blocks/SpotifyBlock'
+import CountdownBlock from '@/components/blocks/CountdownBlock'
+import PortfolioCard from '@/components/blocks/PortfolioCard'
+import { parseImages, spotifyEmbedUrl } from '@/lib/links'
 import { renderLinkIcon } from '@/lib/linkIcon'
 import { hasInlineImages, migrateInlineImages } from '@/lib/uploads'
 import { redirect } from 'next/navigation'
@@ -83,6 +89,74 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
 
   const categories = Object.keys(linksByCategory).sort()
 
+  const isGrid = profile.layout === 'grid'
+
+  // Bento ızgarada tam genişlik kaplayan bloklar (içerik dar kutuya sığmaz)
+  const isWideBlock = (link: any) =>
+    link.featured || ['contact', 'text', 'gallery', 'spotify', 'countdown'].includes(link.type) || link.type?.startsWith('embed-')
+
+  const renderBlock = (link: any) => {
+    switch (link.type) {
+      case 'text':
+        return <TextBlock title={link.title} text={link.description} />
+      case 'gallery':
+        return <GalleryBlock title={link.title} images={parseImages(link.images)} />
+      case 'spotify': {
+        const embedUrl = spotifyEmbedUrl(link.url)
+        return embedUrl ? <SpotifyBlock title={link.title} embedUrl={embedUrl} /> : null
+      }
+      case 'countdown':
+        return link.targetDate ? (
+          <CountdownBlock
+            linkId={link.id}
+            title={link.title}
+            description={link.description}
+            targetDate={new Date(link.targetDate).toISOString()}
+            url={link.url}
+          />
+        ) : null
+      case 'portfolio':
+        return (
+          <PortfolioCard
+            linkId={link.id}
+            title={link.title}
+            description={link.description}
+            image={link.thumbnail}
+            url={link.url}
+            featured={link.featured}
+          />
+        )
+      case 'embed-youtube':
+      case 'embed-twitter':
+      case 'embed-instagram':
+        return (
+          <SocialEmbed
+            url={link.url}
+            type={link.type.replace('embed-', '') as 'youtube' | 'twitter' | 'instagram'}
+            title={link.title}
+          />
+        )
+      default:
+        return (
+          <LinkButton
+            title={link.title}
+            // Şifreli linklerin gerçek URL'si tarayıcıya gönderilmez; şifre doğrulanınca sunucudan alınır
+            url={link.password ? '' : link.url}
+            icon={link.icon}
+            iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon)}
+            linkId={link.id}
+            type={link.type}
+            hasPassword={!!link.password}
+            passwordHint={link.passwordHint}
+            autoOpen={link.id === autoOpenLinkId}
+            featured={link.featured}
+            thumbnail={link.thumbnail}
+            variant={isGrid && !isWideBlock(link) ? 'tile' : 'row'}
+          />
+        )
+    }
+  }
+
   return (
     <main className="min-h-screen relative overflow-hidden">
       <ThemeScript />
@@ -120,6 +194,7 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
             imageUrl={profile.imageUrl}
             verified={profile.verified}
             badges={profile.badges}
+            coverImage={profile.coverImage}
           />
 
           {profile.showSocialIcons && (
@@ -154,37 +229,13 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
                     )}
                     
                     {/* Kategori Linkleri */}
-                    {linksByCategory[category].map((link: any) => {
-                      // Embed tipleri için özel render
-                      if (link.type?.startsWith('embed-')) {
-                        const embedType = link.type.replace('embed-', '') as 'youtube' | 'twitter' | 'instagram'
-                        return (
-                          <SocialEmbed
-                            key={link.id}
-                            url={link.url}
-                            type={embedType}
-                            title={link.title}
-                          />
-                        )
-                      }
-                      
-                      // Normal link button
-                      return (
-                        <LinkButton
-                          key={link.id}
-                          title={link.title}
-                          // Şifreli linklerin gerçek URL'si tarayıcıya gönderilmez; şifre doğrulanınca sunucudan alınır
-                          url={link.password ? '' : link.url}
-                          icon={link.icon}
-                          iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon)}
-                          linkId={link.id}
-                          type={link.type}
-                          hasPassword={!!link.password}
-                          passwordHint={link.passwordHint}
-                          autoOpen={link.id === autoOpenLinkId}
-                        />
-                      )
-                    })}
+                    <div className={isGrid ? 'grid grid-cols-2 gap-3' : 'space-y-4'}>
+                      {linksByCategory[category].map((link: any) => (
+                        <div key={link.id} className={isGrid && isWideBlock(link) ? 'col-span-2' : undefined}>
+                          {renderBlock(link)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </>

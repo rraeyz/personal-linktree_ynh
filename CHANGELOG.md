@@ -26,9 +26,18 @@
 - Kurulum sihirbazı yeniden çalıştırıldığında (şifre sıfırlama) mevcut profil bilgileri ezilmiyor.
 - Manifest Docker deposu sunucunun Debian sürümüne göre seçiliyor (önceden sabit `bullseye`); minimum YunoHost 11.3.
 - Temiz kurulumda `react-is` eksikliğinden kaynaklanan build hatası giderildi.
+- Tema editöründeki yazı tipleri (Inter dışında) yüklenmiyordu; Türkçe karakterler (ğ, ş, ı, İ) başka fonta düşüyordu.
+- "Buton Stili" ve "Köşe Yuvarlaklığı" ayarları sayfaya uygulanmıyordu.
+- Link düzenleme formunda şifre, zamanlama ve kısa link alanları yoktu; şifre alanına hash dolduruluyordu.
+- Zamanlama tarihleri saat dilimi yüzünden her düzenlemede kayıyordu (Türkiye'de 3 saat).
+- Admin panelinin yapışkan üst menüsü çalışmıyordu (`overflow-x: hidden` → `clip`).
 - YunoHost restore scripti düzeltildi; upgrade kesintisiz build yapıyor ve install ile aynı kaynağı kullanıyor.
 
 ### ✨ Yeni Özellikler
+- **Bloklar:** metin, portfolyo kartı, geri sayım, galeri (tam ekran görüntüleyici), Spotify.
+- **Düzen:** profil kapak görseli; klasik liste veya bento ızgara düzeni.
+- **Öne çıkan link** ve **link önizleme görseli** (yükleme ya da siteden og:image ile otomatik alma; SSRF korumalı).
+- **Canlı önizleme:** admin panelinde telefon çerçevesinde site, kayıtlardan sonra kendiliğinden yenilenir.
 - Sosyal medya hesapları ana sayfada ikon olarak (Ayarlar → E-posta İmzası'ndan açılıp kapatılabilir).
 - YunoHost `change_url` desteği: `yunohost app change-url` ile verilerle birlikte başka domaine taşıma.
 - Eski base64 görseller ilk açılışta otomatik olarak dosyaya taşınıyor.

@@ -135,6 +135,42 @@ test('herkese açık uç noktalar', async () => {
   assert.deepEqual((await req('/api/views', { method: 'POST', body: {}, headers: { 'user-agent': 'curl/8' } })).data, { recorded: false })
 })
 
+test('blok tipleri, düzen ve öne çıkan link', async () => {
+  const thumbForm = new FormData()
+  thumbForm.append('kind', 'thumb'); thumbForm.append('file', new Blob([PNG_1PX], { type: 'image/png' }), 't.png')
+  const thumb = (await req('/api/admin/upload', { method: 'POST', cookie: admin, body: thumbForm })).data.url
+  assert.match(thumb, /^\/media\/thumb-/)
+
+  const create = (body) => req('/api/links', { method: 'POST', cookie: admin, body })
+  assert.equal((await create({ type: 'text', title: 'Hakkımda', description: 'Merhaba dünya' })).status, 200, 'metin bloğu URL istemez')
+  assert.equal((await create({ type: 'gallery', title: 'Galeri', images: [thumb] })).status, 200)
+  assert.equal((await create({ type: 'spotify', title: 'Liste', url: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M' })).status, 200)
+  assert.equal((await create({ type: 'countdown', title: 'Etkinlik', targetDate: new Date(Date.now() + 86400e3).toISOString() })).status, 200)
+  assert.equal((await create({ type: 'portfolio', title: 'Proje Kartı', description: 'Açıklama', thumbnail: thumb })).status, 200)
+  assert.equal((await create({ type: 'link', title: 'Öne Çıkan', url: 'https://example.com/one', featured: true, thumbnail: thumb })).status, 200)
+
+  assert.equal((await create({ type: 'spotify', title: 'x', url: 'https://example.com/x' })).status, 400, 'Spotify olmayan adres reddedilmeli')
+  assert.equal((await create({ type: 'gallery', title: 'x', images: ['javascript:alert(1)'] })).status, 400)
+  assert.equal((await create({ type: 'bilinmeyen', title: 'x', url: 'https://a.com' })).status, 400)
+
+  let home = (await req('/', { json: false })).text
+  for (const text of ['Merhaba dünya', 'open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M', 'Proje Kartı', 'featured-card']) {
+    assert.ok(home.includes(text), `ana sayfada olmalı: ${text}`)
+  }
+
+  assert.equal((await req('/api/theme', { method: 'PUT', cookie: admin, body: { layout: 'grid' } })).status, 200)
+  home = (await req('/', { json: false })).text
+  assert.ok(home.includes('grid grid-cols-2'), 'ızgara düzeni uygulanmalı')
+})
+
+test('link önizleme: yetki ve SSRF koruması', async () => {
+  assert.equal((await req('/api/admin/link-preview', { method: 'POST', body: { url: 'https://example.com' } })).status, 401)
+  for (const url of ['http://127.0.0.1:3000/', 'http://localhost/', 'http://169.254.169.254/latest/meta-data/', 'http://[::1]/', 'file:///etc/passwd']) {
+    const res = await req('/api/admin/link-preview', { method: 'POST', cookie: admin, body: { url } })
+    assert.equal(res.status, 400, `${url} reddedilmeli`)
+  }
+})
+
 test('giriş rate limit: sadece hatalı denemeler sayılır', async () => {
   for (let i = 0; i < 12; i++) {
     assert.equal((await req('/api/auth/login', { method: 'POST', headers: ip(40), body: { username: 'admin', password: PASSWORD } })).status, 200)

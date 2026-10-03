@@ -35,6 +35,10 @@ model Profile {
   backgroundType  String @default("gradient-blur") // solid, gradient-blur, particles, image, mesh-gradient
   backgroundImage String @default("") // URL for custom background image
   backgroundOpacity Int   @default(100) // 0-100
+
+  // Sayfa düzeni
+  coverImage      String @default("") // Profilin üstündeki kapak görseli
+  layout          String @default("classic") // classic (liste) | grid (bento ızgara)
   
   // Contact Settings
   contactEmail    String @default("")
@@ -85,7 +89,7 @@ model Link {
   enabled   Boolean  @default(true)
   
   // Link Type (normal link, contact form, donation, etc)
-  type      String   @default("link") // link, contact, donation, embed
+  type      String   @default("link") // link, contact, donation, embed-*, text, gallery, spotify, countdown, portfolio
   
   // Password Protection
   password  String   @default("") // Empty = no password, bcrypt hash if protected
@@ -103,6 +107,13 @@ model Link {
   
   // Categories
   category  String   @default("")
+
+  // Görünüm ve blok içerikleri
+  featured    Boolean  @default(false) // Öne çıkan link (büyük, vurgulu)
+  thumbnail   String   @default("")    // Küçük önizleme görseli (link) / kart görseli (portfolio)
+  description String   @default("")    // Metin bloğu içeriği, portfolyo/geri sayım açıklaması
+  images      String   @default("")    // Galeri: JSON dizi olarak görsel adresleri
+  targetDate  DateTime?                // Geri sayım hedef tarihi
   
   // Advanced Analytics
   analytics Analytics[]

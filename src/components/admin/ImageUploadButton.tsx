@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { FaImage, FaSpinner } from 'react-icons/fa'
 
 interface ImageUploadButtonProps {
-  kind: 'avatar' | 'favicon' | 'og' | 'background' | 'icon'
+  kind: 'avatar' | 'favicon' | 'og' | 'background' | 'icon' | 'cover' | 'thumb' | 'gallery'
   onUploaded: (url: string) => void
   label?: string
   className?: string

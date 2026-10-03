@@ -48,6 +48,8 @@ export async function GET() {
         backgroundType: profile.backgroundType,
         backgroundImage: profile.backgroundImage,
         backgroundOpacity: profile.backgroundOpacity,
+        coverImage: profile.coverImage,
+        layout: profile.layout,
         darkMode: profile.darkMode,
         analyticsRetentionDays: profile.analyticsRetentionDays,
         // SMTP Settings
@@ -81,6 +83,11 @@ export async function GET() {
         passwordHint: link.passwordHint,
         startDate: link.startDate,
         endDate: link.endDate,
+        featured: link.featured,
+        thumbnail: link.thumbnail,
+        description: link.description,
+        images: link.images,
+        targetDate: link.targetDate,
         // Şifreleri dışa aktarma (güvenlik için isteğe bağlı)
         hasPassword: !!link.password
       }))
