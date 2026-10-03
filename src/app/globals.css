@@ -9,6 +9,8 @@
   --color-background: #0a0a0a;
   --color-card: #1a1a1a;
   --color-text: #ffffff;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-input: rgba(0, 0, 0, 0.35);
   
   /* Layout */
   --border-radius: 0.75rem;
@@ -18,6 +20,14 @@
 body {
   background-color: var(--color-background);
   color: var(--color-text);
+}
+
+.bg-dynamic-input {
+  background-color: var(--color-input);
+}
+
+.border-dynamic {
+  border-color: var(--color-border);
 }
 
 /* Custom utility classes */
@@ -57,12 +67,6 @@ body {
   transition-duration: var(--animation-duration);
 }
 
-:root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 10, 10, 10;
-  --background-end-rgb: 10, 10, 10;
-}
-
 * {
   box-sizing: border-box;
   padding: 0;
@@ -76,13 +80,7 @@ body {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: var(--font-inter), sans-serif;
   min-height: 100vh;
 }
 
@@ -98,7 +96,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -115,4 +113,15 @@ body {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tema rengiyle hafif hover arka planı (açık ve koyu modda çalışır) */
+.hover-dynamic:hover {
+  background-color: rgba(127, 127, 127, 0.15);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  .hover-dynamic:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  }
 }

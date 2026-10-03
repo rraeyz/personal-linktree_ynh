@@ -4,6 +4,8 @@ import { isAuthenticated } from '@/lib/auth'
 import { pick } from '@/lib/security'
 import { PROFILE_EDITABLE_FIELDS, toClientProfile } from '@/lib/profile'
 
+export const dynamic = 'force-dynamic'
+
 // Profil (SMTP ayarları dahil) sadece admin paneli içindir.
 // Herkese açık sayfa veriyi doğrudan sunucu tarafında okur.
 export async function GET() {

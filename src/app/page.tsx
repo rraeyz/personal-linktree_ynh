@@ -6,6 +6,8 @@ import ThemeProvider from '@/components/ThemeProvider'
 import ActionButtons from '@/components/ActionButtons'
 import SocialEmbed from '@/components/SocialEmbed'
 import ThemeToggle from '@/components/ThemeToggle'
+import ThemeScript from '@/components/ThemeScript'
+import { renderLinkIcon } from '@/lib/linkIcon'
 import { redirect } from 'next/navigation'
 import { isSetupComplete } from '@/lib/auth'
 
@@ -68,6 +70,7 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
 
   return (
     <main className="min-h-screen relative overflow-hidden">
+      <ThemeScript />
       <ThemeProvider
         theme={{
           primaryColor: profile.primaryColor,
@@ -146,6 +149,7 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
                           // Şifreli linklerin gerçek URL'si tarayıcıya gönderilmez; şifre doğrulanınca sunucudan alınır
                           url={link.password ? '' : link.url}
                           icon={link.icon}
+                          iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon)}
                           linkId={link.id}
                           type={link.type}
                           contactEmail={profile.contactEmail}

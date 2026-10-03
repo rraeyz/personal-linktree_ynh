@@ -82,7 +82,7 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
           onClick={() => setShowSubscribe(!showSubscribe)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-6 py-3 bg-dynamic-card border-2 border-dynamic-primary text-dynamic-text font-medium rounded-xl hover:bg-dynamic-primary/10 transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-dynamic-card border-2 border-dynamic-primary text-dynamic-text font-medium rounded-xl hover-dynamic transition-all"
         >
           <FaEnvelope className="w-4 h-4" />
           Abone Ol
@@ -98,12 +98,12 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-6 bg-dynamic-card rounded-xl border border-gray-800">
+            <div className="p-6 bg-dynamic-card rounded-xl border border-dynamic">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-dynamic-text">Bültene Abone Ol</h3>
                 <button
                   onClick={() => setShowSubscribe(false)}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 hover-dynamic rounded-lg transition-colors"
                 >
                   <FaTimes className="w-4 h-4 text-gray-400" />
                 </button>
@@ -115,7 +115,7 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white focus:outline-none focus:border-dynamic-primary transition-colors"
+                    className="w-full px-4 py-3 bg-dynamic-input border border-dynamic rounded-lg text-dynamic-text focus:outline-none focus:border-dynamic-primary transition-colors"
                     placeholder="Adınız (opsiyonel)"
                   />
                 </div>
@@ -126,7 +126,7 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white focus:outline-none focus:border-dynamic-primary transition-colors"
+                    className="w-full px-4 py-3 bg-dynamic-input border border-dynamic rounded-lg text-dynamic-text focus:outline-none focus:border-dynamic-primary transition-colors"
                     placeholder="E-posta adresiniz"
                   />
                 </div>

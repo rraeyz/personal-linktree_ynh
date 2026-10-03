@@ -59,12 +59,12 @@ export default function ContactForm({ contactEmail, onClose }: ContactFormProps)
         exit={{ opacity: 0, height: 0 }}
         className="overflow-hidden"
       >
-        <div className="p-6 bg-dynamic-card rounded-xl border border-gray-800 mt-4">
+        <div className="p-6 bg-dynamic-card rounded-xl border border-dynamic mt-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-dynamic-text">Bana Ulaşın</h3>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover-dynamic rounded-lg transition-colors"
             >
               <FaTimes className="w-4 h-4 text-gray-400" />
             </button>
@@ -82,37 +82,37 @@ export default function ContactForm({ contactEmail, onClose }: ContactFormProps)
               className="absolute -left-[9999px] w-px h-px opacity-0"
             />
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Adınız</label>
+              <label className="block text-sm text-dynamic-text opacity-70 mb-2">Adınız</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white focus:outline-none focus:border-dynamic-primary transition-colors"
+                className="w-full px-4 py-3 bg-dynamic-input border border-dynamic rounded-lg text-dynamic-text focus:outline-none focus:border-dynamic-primary transition-colors"
                 placeholder="Adınız Soyadınız"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">E-posta</label>
+              <label className="block text-sm text-dynamic-text opacity-70 mb-2">E-posta</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white focus:outline-none focus:border-dynamic-primary transition-colors"
+                className="w-full px-4 py-3 bg-dynamic-input border border-dynamic rounded-lg text-dynamic-text focus:outline-none focus:border-dynamic-primary transition-colors"
                 placeholder="ornek@email.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Mesajınız</label>
+              <label className="block text-sm text-dynamic-text opacity-70 mb-2">Mesajınız</label>
               <textarea
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
                 rows={4}
-                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white focus:outline-none focus:border-dynamic-primary transition-colors resize-none"
+                className="w-full px-4 py-3 bg-dynamic-input border border-dynamic rounded-lg text-dynamic-text focus:outline-none focus:border-dynamic-primary transition-colors resize-none"
                 placeholder="Mesajınızı buraya yazın..."
               />
             </div>

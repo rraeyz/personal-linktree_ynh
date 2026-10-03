@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { IconType } from 'react-icons'
-import * as FaIcons from 'react-icons/fa'
-import * as SiIcons from 'react-icons/si'
+import { FaArrowRight, FaChevronDown, FaLink, FaLock } from 'react-icons/fa'
 import Image from 'next/image'
 import ContactForm from './ContactForm'
 import PasswordModal from './PasswordModal'
@@ -13,6 +11,8 @@ interface LinkButtonProps {
   title: string
   url: string
   icon: string
+  // Sunucuda çizilmiş ikon (bkz. lib/linkIcon); verilmezse varsayılan link ikonu
+  iconElement?: React.ReactNode
   linkId: number
   type?: string
   contactEmail?: string
@@ -25,6 +25,7 @@ export default function LinkButton({
   title, 
   url, 
   icon, 
+  iconElement,
   linkId, 
   type = 'link', 
   contactEmail = '',
@@ -42,13 +43,7 @@ export default function LinkButton({
   // Custom URL mı yoksa ikon adı mı kontrol et
   const isCustomIcon = icon.startsWith('http')
 
-  // Icon'u dinamik olarak al
-  const getIcon = (iconName: string): IconType => {
-    const allIcons = { ...FaIcons, ...SiIcons } as any
-    return allIcons[iconName] || FaIcons.FaLink
-  }
-
-  const Icon = !isCustomIcon ? getIcon(icon) : null
+  const iconNode = iconElement ?? <FaLink className="w-5 h-5 text-dynamic-text transition-colors" />
 
   // Tıklama takibi
   const handleClick = async () => {
@@ -117,7 +112,7 @@ export default function LinkButton({
         >
       <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-300" />
       
-      <div className="relative flex items-center justify-between px-8 py-5 bg-dynamic-card hover:opacity-90 rounded-2xl border border-gray-800/50 group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
+      <div className="relative flex items-center justify-between px-8 py-5 bg-dynamic-card hover:opacity-90 rounded-2xl border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
         <div className="flex items-center gap-4">
           <div className="p-3 gradient-primary-accent opacity-25 group-hover:opacity-35 rounded-xl transition-all transition-dynamic">
             {isCustomIcon ? (
@@ -134,15 +129,13 @@ export default function LinkButton({
                   }}
                 />
               </div>
-            ) : Icon ? (
-              <Icon className="w-5 h-5 text-dynamic-text transition-colors" />
-            ) : null}
+            ) : iconNode}
           </div>
           <span className="text-lg font-medium text-dynamic-text group-hover:opacity-90 transition-colors">
             {title}
           </span>
           {hasPassword && (
-            <FaIcons.FaLock className="w-4 h-4 text-purple-400" />
+            <FaLock className="w-4 h-4 text-dynamic-primary" />
           )}
         </div>
         
@@ -150,7 +143,7 @@ export default function LinkButton({
           animate={{ x: [0, 5, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <FaIcons.FaArrowRight className="w-5 h-5 text-gray-500 group-hover:text-purple-400 transition-colors" />
+          <FaArrowRight className="w-5 h-5 text-gray-500 group-hover:text-[color:var(--color-primary)] transition-colors" />
         </motion.div>
       </div>
     </motion.a>
@@ -180,7 +173,7 @@ export default function LinkButton({
       >
         <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-300" />
         
-        <div className="relative flex items-center justify-between px-8 py-5 bg-dynamic-card hover:opacity-90 rounded-2xl border border-gray-800/50 group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
+        <div className="relative flex items-center justify-between px-8 py-5 bg-dynamic-card hover:opacity-90 rounded-2xl border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
           <div className="flex items-center gap-4">
             <div className="p-3 gradient-primary-accent opacity-20 group-hover:opacity-30 rounded-xl transition-all transition-dynamic">
               {isCustomIcon ? (
@@ -197,9 +190,7 @@ export default function LinkButton({
                     }}
                   />
                 </div>
-              ) : Icon ? (
-                <Icon className="w-5 h-5 text-dynamic-text transition-colors" />
-              ) : null}
+              ) : iconNode}
             </div>
             <span className="text-lg font-medium text-dynamic-text group-hover:opacity-90 transition-colors">
               {title}
@@ -210,7 +201,7 @@ export default function LinkButton({
             animate={{ rotate: showContactForm ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            <FaIcons.FaChevronDown className="w-5 h-5 text-gray-500 group-hover:text-purple-400 transition-colors" />
+            <FaChevronDown className="w-5 h-5 text-gray-500 group-hover:text-[color:var(--color-primary)] transition-colors" />
           </motion.div>
         </div>
       </motion.button>

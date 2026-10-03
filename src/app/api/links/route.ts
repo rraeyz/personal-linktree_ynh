@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import { buildLinkData } from '@/lib/links'
 
+export const dynamic = 'force-dynamic'
+
 // Tüm linkler (kapalı, zamanlanmış, şifreli olanlar dahil) sadece admin içindir.
 // Herkese açık sayfa linkleri sunucu tarafında filtreleyerek okur.
 export async function GET() {
