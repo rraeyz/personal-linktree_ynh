@@ -1,6 +1,8 @@
 # 1.1.0
 
 ### 🔒 Güvenlik
+- Şifre değişince tüm oturumlar kapanıyor; panelde "tüm cihazlardan çıkış" butonu. Giriş deneme sınırı yalnızca hatalı denemeleri sayıyor.
+- YunoHost'ta container portu yalnızca yerel arayüze bağlanıyor (Docker, YunoHost güvenlik duvarını atlayıp uygulamayı nginx/HTTPS olmadan dışarı açabiliyordu).
 - Kurulum sihirbazı (`/api/setup`) tamamlandıktan sonra tekrar çalıştırılamıyor; önceden herkes admin şifresini değiştirebiliyordu.
 - Admin şifresi `.env`'de düz metin yerine veritabanında bcrypt hash olarak tutuluyor. Eski kurulumlar ilk girişte otomatik taşınıyor.
 - `GET /api/profile` (SMTP şifresi dahil) ve `GET /api/links` (şifreli/kapalı linkler) artık giriş gerektiriyor.
@@ -18,16 +20,29 @@
 - E-postalardaki sosyal ikonlar Gmail'de görünüyor (barındırılan PNG); gönderen adresi boş kalmıyor.
 - Doğrudan `http://sunucu:3000` erişiminde admin girişi yapılamıyordu.
 - `default-avatar.jpg` aslında SVG'ydi; gerçek JPEG ile değiştirildi.
+- Günlük ve YunoHost yedekleri, çalışan veritabanını tutarlı şekilde kopyalıyor (önceden `cat`/`cp` ile bozuk yedek riski vardı).
+- YunoHost restore script'i yanlış yoldan `_common.sh` yüklüyordu (restore ilk satırda çökerdi).
+- Kök `docker-compose.yml` boş `JWT_SECRET` tanımlayıp sihirbazın ayarını eziyordu (her yeniden başlatmada oturumlar ve abonelikten çık linkleri bozuluyordu).
+- Kurulum sihirbazı yeniden çalıştırıldığında (şifre sıfırlama) mevcut profil bilgileri ezilmiyor.
+- Manifest Docker deposu sunucunun Debian sürümüne göre seçiliyor (önceden sabit `bullseye`); minimum YunoHost 11.3.
 - Temiz kurulumda `react-is` eksikliğinden kaynaklanan build hatası giderildi.
 - YunoHost restore scripti düzeltildi; upgrade kesintisiz build yapıyor ve install ile aynı kaynağı kullanıyor.
 
 ### ✨ Yeni Özellikler
+- Sosyal medya hesapları ana sayfada ikon olarak (Ayarlar → E-posta İmzası'ndan açılıp kapatılabilir).
+- YunoHost `change_url` desteği: `yunohost app change-url` ile verilerle birlikte başka domaine taşıma.
+- Eski base64 görseller ilk açılışta otomatik olarak dosyaya taşınıyor.
 - **Görsel yükleme:** profil fotoğrafı, favicon, sosyal medya görseli ve arka plan sunucuya yükleniyor; otomatik boyutlandırma, EXIF/konum bilgisi silme.
 - **Profil görüntülenme analitiği:** görüntülenme, tekil ziyaretçi, etkileşim oranı, UTM kampanya tablosu.
 - **Bülten:** kişiye özel "abonelikten çık" sayfası ve Gmail/Outlook tek tıkla çıkış.
 - **Rehbere Ekle (vCard):** isteğe bağlı, varsayılan kapalı.
 - `robots.txt` ve `sitemap.xml`.
 - Upgrade'lerde veritabanı şeması otomatik güncelleniyor (`db-migrate.js`, öncesinde yedek alınır).
+
+### 🧹 Temizlik ve dokümantasyon
+- Kullanılmayan eski paket kopyası (`yunohost/`) ve `conf/app.src` kaldırıldı.
+- README, YunoHost, Docker ve hızlı başlangıç kılavuzları güncel ve doğru bilgilerle yeniden yazıldı (test domaininden ana domaine geçiş dahil).
+- `tests/e2e/`: uçtan uca API ve tarayıcı testleri; CI bunları Docker container'ına karşı çalıştırıyor.
 
 ### ⚡ İyileştirmeler
 - Next.js 14.1.0 → 14.2.35.

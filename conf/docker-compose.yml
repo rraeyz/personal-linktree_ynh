@@ -6,7 +6,9 @@ services:
     container_name: __APP__
     restart: unless-stopped
     ports:
-      - "__PORT__:3000"
+      # Sadece yerel arayüz: nginx 127.0.0.1 üzerinden bağlanır. Tüm arayüzlere açılırsa Docker
+      # YunoHost güvenlik duvarını atlar ve uygulama nginx/HTTPS olmadan doğrudan erişilebilir olur.
+      - "127.0.0.1:__PORT__:3000"
     env_file:
       - __DATA_DIR__/.env
     environment:

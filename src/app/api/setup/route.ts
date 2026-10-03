@@ -133,9 +133,17 @@ NODE_ENV=production
         const pageTitle = String(data.pageTitle || 'Personal Link Tree').slice(0, 200)
         const pageDescription = String(data.pageDescription || 'My personal links').slice(0, 500)
 
+        // Sihirbaz mevcut bir kurulumda yeniden çalıştırılırsa (ör. admin şifresi sıfırlama)
+        // profil ezilmesin: sadece doldurulan alanlar güncellenir
+        const update: Record<string, string> = {}
+        if (data.name) update.name = name
+        if (data.bio) update.bio = bio
+        if (data.pageTitle) update.pageTitle = pageTitle
+        if (data.pageDescription) update.pageDescription = pageDescription
+
         await prisma.profile.upsert({
           where: { id: 1 },
-          update: { name, bio, pageTitle, pageDescription },
+          update,
           create: {
             id: 1,
             name,

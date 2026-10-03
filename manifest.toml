@@ -17,7 +17,7 @@ code = "https://github.com/rraeyz/personal-linktree_ynh"
 admindoc = "https://github.com/rraeyz/personal-linktree_ynh/blob/main/README.md"
 
 [integration]
-yunohost = ">= 11.2"
+yunohost = ">= 11.3"
 architectures = "all"
 multi_instance = true
 ldap = false
@@ -63,6 +63,7 @@ ram.runtime = "512M"
     [resources.apt]
     packages = []
 
-    extras.docker.repo = "deb https://download.docker.com/linux/debian bullseye stable"
+    # __YNH_DEBIAN_VERSION__ YunoHost tarafından sunucunun Debian sürümüyle (bullseye/bookworm) değiştirilir (YunoHost >= 11.3)
+    extras.docker.repo = "deb https://download.docker.com/linux/debian __YNH_DEBIAN_VERSION__ stable"
     extras.docker.key = "https://download.docker.com/linux/debian/gpg"
     extras.docker.packages = ["docker-ce", "docker-ce-cli", "containerd.io", "docker-compose-plugin"]
