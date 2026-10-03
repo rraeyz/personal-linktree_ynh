@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       youtubeUrl: settings.profile.youtubeUrl || '',
       instagramUrl: settings.profile.instagramUrl || '',
       githubUrl: settings.profile.githubUrl || '',
+      showSocialIcons: settings.profile.showSocialIcons ?? true,
     }
 
     if (existingProfile) {

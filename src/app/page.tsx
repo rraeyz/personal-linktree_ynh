@@ -8,6 +8,7 @@ import SocialEmbed from '@/components/SocialEmbed'
 import ThemeToggle from '@/components/ThemeToggle'
 import ThemeScript from '@/components/ThemeScript'
 import ViewTracker from '@/components/ViewTracker'
+import SocialIcons from '@/components/SocialIcons'
 import { renderLinkIcon } from '@/lib/linkIcon'
 import { redirect } from 'next/navigation'
 import { isSetupComplete } from '@/lib/auth'
@@ -107,6 +108,17 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
             verified={profile.verified}
             badges={profile.badges}
           />
+
+          {profile.showSocialIcons && (
+            <SocialIcons
+              linkedinUrl={profile.linkedinUrl}
+              twitterUrl={profile.twitterUrl}
+              discordUrl={profile.discordUrl}
+              youtubeUrl={profile.youtubeUrl}
+              instagramUrl={profile.instagramUrl}
+              githubUrl={profile.githubUrl}
+            />
+          )}
 
           <div className="mt-8 space-y-4 w-full">
             {links.length === 0 ? (

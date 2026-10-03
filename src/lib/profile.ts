@@ -10,7 +10,7 @@ export const PROFILE_EDITABLE_FIELDS = [
   'darkMode', 'verified', 'badges', 'analyticsRetentionDays',
   'smtpHost', 'smtpPort', 'smtpUser', 'smtpPassword', 'smtpFrom', 'smtpFromName', 'smtpSecure',
   'companyName', 'companyAddress',
-  'linkedinUrl', 'twitterUrl', 'discordUrl', 'youtubeUrl', 'instagramUrl', 'githubUrl',
+  'linkedinUrl', 'twitterUrl', 'discordUrl', 'youtubeUrl', 'instagramUrl', 'githubUrl', 'showSocialIcons',
 ] as const
 
 // SMTP şifresi hiçbir zaman istemciye gönderilmez; sadece kayıtlı olup olmadığı bildirilir

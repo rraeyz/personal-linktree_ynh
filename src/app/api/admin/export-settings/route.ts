@@ -67,6 +67,7 @@ export async function GET() {
         youtubeUrl: profile.youtubeUrl,
         instagramUrl: profile.instagramUrl,
         githubUrl: profile.githubUrl,
+        showSocialIcons: profile.showSocialIcons,
       } : null,
       links: links.map(link => ({
         title: link.title,

@@ -70,6 +70,7 @@ model Profile {
   youtubeUrl      String @default("")
   instagramUrl    String @default("")
   githubUrl       String @default("")
+  showSocialIcons Boolean @default(true) // Sosyal medya linklerini ana sayfada ikon olarak göster
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
