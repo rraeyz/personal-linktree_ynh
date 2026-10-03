@@ -162,3 +162,20 @@ model Admin {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+// Profil sayfası görüntülenmeleri (tıklama oranı ve ziyaretçi sayısı için)
+model PageView {
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  device      String   @default("")
+  browser     String   @default("")
+  os          String   @default("")
+  country     String   @default("")
+  referrer    String   @default("")
+  utmSource   String   @default("")
+  utmMedium   String   @default("")
+  utmCampaign String   @default("")
+  ipHash      String   @default("")
+
+  @@index([timestamp])
+}

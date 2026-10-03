@@ -43,6 +43,9 @@ export async function recordClick(
   extra: { referrer?: string; utm?: UtmParams } = {}
 ) {
   const userAgent = (headers.get('user-agent') || '').slice(0, 500)
+  // Link önizleme botları (WhatsApp, Telegram, arama motorları...) tıklama sayılmaz
+  if (isBot(userAgent)) return null
+
   const result = new UAParser(userAgent).getResult()
 
   const ip = getClientIp(headers)
@@ -87,4 +90,55 @@ export async function recordClick(
   })
 
   return link
+}
+
+// Arama motoru botları, link önizleme servisleri vb. görüntülenme sayılmaz
+const BOT_PATTERN = /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|quora link|whatsapp|headless|lighthouse|pingdom|uptime|monitor|curl|wget|python-requests|axios|node-fetch/i
+
+export function isBot(userAgent: string): boolean {
+  return !userAgent || BOT_PATTERN.test(userAgent)
+}
+
+// Referrer'ı alan adına indirger (https://www.instagram.com/x?y → instagram.com)
+export function referrerHost(referrer: string): string {
+  if (!referrer) return ''
+  try {
+    return new URL(referrer).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+
+// Profil sayfası görüntülenmesini kaydeder (botlar hariç). Kaydedildiyse true döner.
+export async function recordPageView(
+  headers: Headers,
+  extra: { referrer?: string; utm?: UtmParams } = {}
+): Promise<boolean> {
+  const userAgent = headers.get('user-agent') || ''
+  if (isBot(userAgent)) return false
+
+  const result = new UAParser(userAgent).getResult()
+  const ip = getClientIp(headers)
+
+  let country = 'Unknown'
+  if (isPrivateIp(ip)) {
+    country = 'Local'
+  } else if (geoip) {
+    country = geoip.lookup(ip)?.country || 'Unknown'
+  }
+
+  await prisma.pageView.create({
+    data: {
+      device: result.device.type || 'desktop',
+      browser: result.browser.name || 'Unknown',
+      os: result.os.name || 'Unknown',
+      country,
+      referrer: (extra.referrer || '').slice(0, 500),
+      utmSource: extra.utm?.utmSource || '',
+      utmMedium: extra.utm?.utmMedium || '',
+      utmCampaign: extra.utm?.utmCampaign || '',
+      ipHash: hashIp(ip),
+    },
+  })
+  return true
 }

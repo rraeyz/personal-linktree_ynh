@@ -29,7 +29,7 @@ export async function POST(
       utm: utmFromSearchParams(new URLSearchParams(typeof body.search === 'string' ? body.search : '')),
     })
 
-    return NextResponse.json({ success: true, clicks: link.clicks })
+    return NextResponse.json({ success: true, recorded: !!link })
   } catch (error) {
     console.error('Click tracking error:', error)
     return NextResponse.json(

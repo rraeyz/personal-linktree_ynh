@@ -7,6 +7,7 @@ import ActionButtons from '@/components/ActionButtons'
 import SocialEmbed from '@/components/SocialEmbed'
 import ThemeToggle from '@/components/ThemeToggle'
 import ThemeScript from '@/components/ThemeScript'
+import ViewTracker from '@/components/ViewTracker'
 import { renderLinkIcon } from '@/lib/linkIcon'
 import { redirect } from 'next/navigation'
 import { isSetupComplete } from '@/lib/auth'
@@ -71,6 +72,7 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
   return (
     <main className="min-h-screen relative overflow-hidden">
       <ThemeScript />
+      <ViewTracker />
       <ThemeProvider
         theme={{
           primaryColor: profile.primaryColor,
