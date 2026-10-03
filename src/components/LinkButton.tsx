@@ -15,7 +15,6 @@ interface LinkButtonProps {
   iconElement?: React.ReactNode
   linkId: number
   type?: string
-  contactEmail?: string
   hasPassword?: boolean
   passwordHint?: string
   autoOpen?: boolean
@@ -28,7 +27,6 @@ export default function LinkButton({
   iconElement,
   linkId, 
   type = 'link', 
-  contactEmail = '',
   hasPassword = false,
   passwordHint = '',
   autoOpen = false
@@ -206,7 +204,7 @@ export default function LinkButton({
         </div>
       </motion.button>
 
-      {showContactForm && <ContactForm contactEmail={contactEmail} onClose={() => setShowContactForm(false)} />}
+      {showContactForm && <ContactForm onClose={() => setShowContactForm(false)} />}
     </div>
   )
 }

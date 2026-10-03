@@ -21,6 +21,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
   const [contactEmail, setContactEmail] = useState(initialProfile?.contactEmail || '')
   const [contactPhone, setContactPhone] = useState(initialProfile?.contactPhone || '')
   const [contactAddress, setContactAddress] = useState(initialProfile?.contactAddress || '')
+  const [showVCard, setShowVCard] = useState<boolean>(initialProfile?.showVCard || false)
   const [verified, setVerified] = useState(initialProfile?.verified || false)
   const [badges, setBadges] = useState(initialProfile?.badges || '')
   const [saving, setSaving] = useState(false)
@@ -44,6 +45,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           contactEmail,
           contactPhone,
           contactAddress,
+          showVCard,
           verified,
           badges
         }),
@@ -219,6 +221,21 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                 placeholder="Şehir, Ülke"
               />
             </div>
+
+            <label className="flex items-start gap-3 p-4 bg-dark-bg border border-gray-700 rounded-xl cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showVCard}
+                onChange={(e) => setShowVCard(e.target.checked)}
+                className="mt-1 w-4 h-4 accent-purple-500"
+              />
+              <span>
+                <span className="block text-sm font-medium text-white">Ziyaretçilere &quot;Rehbere Ekle&quot; butonu göster</span>
+                <span className="block text-xs text-gray-400 mt-1">
+                  Açılırsa adınız, yukarıdaki e-posta, telefon ve adres ile profil fotoğrafınız herkesin indirebileceği bir kişi kartına (vCard) eklenir. Kapalıyken bu bilgiler sayfada görünmez.
+                </span>
+              </span>
+            </label>
           </div>
         </div>
 

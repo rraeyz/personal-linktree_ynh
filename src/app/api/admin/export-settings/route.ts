@@ -31,6 +31,7 @@ export async function GET() {
         ogImageUrl: profile.ogImageUrl,
         contactEmail: profile.contactEmail,
         contactPhone: profile.contactPhone,
+        showVCard: profile.showVCard,
         contactAddress: profile.contactAddress,
         verified: profile.verified,
         badges: profile.badges,

@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       contactEmail: settings.profile.contactEmail || '',
       contactPhone: settings.profile.contactPhone || '',
       contactAddress: settings.profile.contactAddress || '',
+      showVCard: settings.profile.showVCard ?? false,
       verified: settings.profile.verified || false,
       badges: settings.profile.badges || '',
       themePreset: settings.profile.themePreset || 'purple-dream',

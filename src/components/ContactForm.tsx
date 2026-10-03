@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaPaperPlane, FaTimes } from 'react-icons/fa'
 
 interface ContactFormProps {
-  contactEmail: string
   onClose: () => void
 }
 
-export default function ContactForm({ contactEmail, onClose }: ContactFormProps) {
+// Alıcı adresi sunucuda database'den okunur; tarayıcıya gönderilmez (spam botları toplamasın)
+export default function ContactForm({ onClose }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',

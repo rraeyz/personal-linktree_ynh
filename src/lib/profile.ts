@@ -6,7 +6,7 @@ export const PROFILE_EDITABLE_FIELDS = [
   'themePreset', 'primaryColor', 'accentColor', 'backgroundColor', 'cardColor', 'textColor',
   'buttonStyle', 'fontFamily', 'borderRadius', 'animationSpeed',
   'backgroundType', 'backgroundImage', 'backgroundOpacity',
-  'contactEmail', 'contactPhone', 'contactAddress',
+  'contactEmail', 'contactPhone', 'contactAddress', 'showVCard',
   'darkMode', 'verified', 'badges', 'analyticsRetentionDays',
   'smtpHost', 'smtpPort', 'smtpUser', 'smtpPassword', 'smtpFrom', 'smtpFromName', 'smtpSecure',
   'companyName', 'companyAddress',

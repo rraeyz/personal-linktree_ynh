@@ -154,7 +154,6 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
                           iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon)}
                           linkId={link.id}
                           type={link.type}
-                          contactEmail={profile.contactEmail}
                           hasPassword={!!link.password}
                           passwordHint={link.passwordHint}
                           autoOpen={link.id === autoOpenLinkId}
@@ -168,13 +167,13 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
           </div>
 
           {/* Action Buttons */}
-          <ActionButtons 
-            url={typeof window !== 'undefined' ? window.location.href : 'https://yoursite.com'}
+          <ActionButtons
             title={`${profile.name} - Link Tree`}
+            showVCard={profile.showVCard}
           />
 
           <footer className="mt-16 text-center text-gray-600 text-sm">
-            <p>© 2026 {profile.name}. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
           </footer>
         </div>
       </div>

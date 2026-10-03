@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaShare, FaEnvelope, FaTimes } from 'react-icons/fa'
+import { FaShare, FaEnvelope, FaTimes, FaAddressCard } from 'react-icons/fa'
 
 interface ActionButtonsProps {
-  url: string
   title: string
+  showVCard?: boolean
 }
 
-export default function ActionButtons({ url, title }: ActionButtonsProps) {
+export default function ActionButtons({ title, showVCard = false }: ActionButtonsProps) {
   const [showSubscribe, setShowSubscribe] = useState(false)
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
@@ -17,6 +17,8 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
   const [sending, setSending] = useState(false)
 
   const handleShare = async () => {
+    // Paylaşılan adres: ziyaretçinin şu an bulunduğu sayfa (UTM vb. parametreler hariç)
+    const url = window.location.origin + window.location.pathname
     if (navigator.share) {
       try {
         await navigator.share({
@@ -28,8 +30,12 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
       }
     } else {
       // Fallback: Copy to clipboard
-      navigator.clipboard.writeText(url)
-      alert('Link kopyalandı!')
+      try {
+        await navigator.clipboard.writeText(url)
+        alert('Link kopyalandı!')
+      } catch {
+        prompt('Linki kopyalayın:', url)
+      }
     }
   }
 
@@ -67,7 +73,7 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
   return (
     <div className="mt-12 space-y-4">
       {/* Action Buttons */}
-      <div className="flex gap-3 justify-center">
+      <div className="flex flex-wrap gap-3 justify-center">
         <motion.button
           onClick={handleShare}
           whileHover={{ scale: 1.05 }}
@@ -87,6 +93,19 @@ export default function ActionButtons({ url, title }: ActionButtonsProps) {
           <FaEnvelope className="w-4 h-4" />
           Abone Ol
         </motion.button>
+
+        {showVCard && (
+          <motion.a
+            href="/api/vcard"
+            download
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-6 py-3 bg-dynamic-card border-2 border-dynamic text-dynamic-text font-medium rounded-xl hover-dynamic transition-all"
+          >
+            <FaAddressCard className="w-4 h-4" />
+            Rehbere Ekle
+          </motion.a>
+        )}
       </div>
 
       {/* Subscribe Form */}
