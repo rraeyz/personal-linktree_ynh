@@ -74,6 +74,7 @@ COPY --from=builder /app/node_modules/react-icons ./node_modules/react-icons
 # Entrypoint script (database başlatma + migration + server)
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 COPY db-migrate.js ./db-migrate.js
+COPY db-backup.js ./db-backup.js
 RUN chmod +x ./docker-entrypoint.sh
 
 # Dizinleri oluştur

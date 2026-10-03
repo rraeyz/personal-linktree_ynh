@@ -41,6 +41,9 @@ ynh_add_nginx_config
 #=================================================
 ynh_add_systemd_config
 
+# Eski kurulumlardaki güvensiz (cat ile kopyalayan) yedekleme cron'unu güncelle
+setup_backup_cron
+
 chown -R "$app:$app" "$install_dir"
 
 #=================================================

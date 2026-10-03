@@ -95,15 +95,7 @@ ynh_use_logrotate
 #=================================================
 ynh_script_progression --message="Configuring backup..." --weight=1
 
-# Günlük yedekleme için cron job
-cat > "/etc/cron.daily/$app-backup" << EOF
-#!/bin/bash
-docker exec ${app} cat /app/prisma/dev.db > $data_dir/backup/db-\$(date +%Y%m%d).db
-find $data_dir/backup -name "db-*.db" -mtime +7 -delete
-EOF
-chmod +x "/etc/cron.daily/$app-backup"
-
-mkdir -p "$data_dir/backup"
+setup_backup_cron
 
 #=================================================
 # END OF SCRIPT

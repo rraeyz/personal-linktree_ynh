@@ -38,3 +38,33 @@ wait_for_app() {
     ynh_print_warn --message="Uygulama 3 dakika içinde yanıt vermedi. Logları kontrol edin: docker logs $app"
     return 0
 }
+
+# Günlük database yedeği (cron). Çalışan SQLite dosyası cp/cat ile değil, container içindeki
+# db-backup.js (SQLite çevrimiçi yedekleme API'si) ile tutarlı şekilde kopyalanır.
+# Yedekler $data_dir/backup altında, son 7 gün saklanır.
+setup_backup_cron() {
+    mkdir -p "$data_dir/backup"
+    cat > "/etc/cron.daily/$app-backup" << EOF2
+#!/bin/bash
+set -e
+stamp=\$(date +%Y%m%d)
+docker exec $app node /app/db-backup.js /app/prisma/backups/db-\$stamp.db
+mv -f "$data_dir/prisma/backups/db-\$stamp.db" "$data_dir/backup/db-\$stamp.db"
+find "$data_dir/backup" -name "db-*.db" -mtime +7 -delete
+EOF2
+    chmod +x "/etc/cron.daily/$app-backup"
+}
+
+# YunoHost yedeği için database'in tutarlı anlık kopyasını $data_dir/prisma/backup-snapshot.db'ye alır.
+# Container çalışmıyorsa (veya eski imajda db-backup.js yoksa) dosya doğrudan kopyalanır
+# (container kapalıyken yazma olmadığı için bu güvenlidir).
+snapshot_database() {
+    local snapshot="$data_dir/prisma/backup-snapshot.db"
+    rm -f "$snapshot"
+    if docker exec "$app" node /app/db-backup.js /app/prisma/backup-snapshot.db 2>/dev/null; then
+        return 0
+    fi
+    if [ -f "$data_dir/prisma/dev.db" ]; then
+        cp "$data_dir/prisma/dev.db" "$snapshot"
+    fi
+}
