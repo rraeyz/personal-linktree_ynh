@@ -56,8 +56,11 @@ export default function ProfileSection({ name, bio, imageUrl, verified, badges }
             className="object-cover"
             priority
             onError={(e) => {
+              // Yalnızca bir kez varsayılana dön; varsayılan da yüklenemezse döngüye girme
               const target = e.target as HTMLImageElement
-              target.src = '/default-avatar.jpg'
+              if (!target.src.endsWith('/default-avatar.jpg')) {
+                target.src = '/default-avatar.jpg'
+              }
             }}
           />
         </div>

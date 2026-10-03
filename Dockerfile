@@ -6,13 +6,13 @@ WORKDIR /app
 # Native modüller için build bağımlılıkları (better-sqlite3, sharp)
 RUN apk add --no-cache python3 make g++ vips-dev
 
-# Package dosyalarını kopyala
-COPY package.json ./
+# Package dosyalarını kopyala (lock dosyası: her build'de aynı sürümler kurulsun)
+COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
 # Bağımlılıkları yükle
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
 # Kaynak kodları kopyala
 COPY . .
@@ -71,8 +71,9 @@ COPY --from=builder /app/node_modules/recharts ./node_modules/recharts
 COPY --from=builder /app/node_modules/@dnd-kit ./node_modules/@dnd-kit
 COPY --from=builder /app/node_modules/react-icons ./node_modules/react-icons
 
-# Entrypoint script (database başlatma + server)
+# Entrypoint script (database başlatma + migration + server)
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
+COPY db-migrate.js ./db-migrate.js
 RUN chmod +x ./docker-entrypoint.sh
 
 # Dizinleri oluştur

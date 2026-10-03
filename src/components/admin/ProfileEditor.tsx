@@ -161,7 +161,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               className="object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement
-                target.src = '/default-avatar.jpg'
+                if (!target.src.endsWith('/default-avatar.jpg')) target.src = '/default-avatar.jpg'
               }}
             />
           </div>

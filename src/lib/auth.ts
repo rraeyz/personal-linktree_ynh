@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 
 export const AUTH_COOKIE = 'auth-token'
@@ -59,9 +59,13 @@ export async function isAuthenticated(): Promise<boolean> {
 export async function setAuthCookie(username: string) {
   const token = signToken({ userId: 1, username })
   const cookieStore = await cookies()
+  // Secure bayrağı isteğin gerçek protokolüne göre: HTTPS (YunoHost/nginx) → secure,
+  // doğrudan http://sunucu:3000 erişimi → secure değil (yoksa tarayıcı cookie'yi kaydetmez, giriş yapılamaz)
+  const proto = headers().get('x-forwarded-proto')?.split(',')[0].trim()
+  const isHttps = proto ? proto === 'https' : false
   cookieStore.set(AUTH_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isHttps,
     sameSite: 'lax',
     path: '/',
     maxAge: TOKEN_MAX_AGE,

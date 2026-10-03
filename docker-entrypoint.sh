@@ -15,5 +15,8 @@ else
   echo "✅ Mevcut database bulundu: /app/prisma/dev.db"
 fi
 
+# Yeni sürümde şemaya eklenen tablo/kolonları mevcut database'e ekle (veri silinmez)
+node /app/db-migrate.js /app/template.db /app/prisma/dev.db || echo "⚠️  Migration başarısız, mevcut şema ile devam ediliyor"
+
 echo "🚀 Next.js server başlatılıyor..."
 exec node server.js
