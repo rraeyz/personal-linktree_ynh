@@ -1,3 +1,28 @@
+# 1.1.0
+
+### 🔒 Güvenlik
+- Kurulum sihirbazı (`/api/setup`) tamamlandıktan sonra tekrar çalıştırılamıyor; önceden herkes admin şifresini değiştirebiliyordu.
+- Admin şifresi `.env`'de düz metin yerine veritabanında bcrypt hash olarak tutuluyor. Eski kurulumlar ilk girişte otomatik taşınıyor.
+- `GET /api/profile` (SMTP şifresi dahil) ve `GET /api/links` (şifreli/kapalı linkler) artık giriş gerektiriyor.
+- Şifreli linklerin gerçek URL'si sayfa kaynağında görünmüyor.
+- Login, link şifresi, iletişim formu ve abonelik için rate limit; iletişim formunda HTML escape ve honeypot.
+- Ham IP adresi yerine hash saklanıyor (KVKK/GDPR).
+
+### 🐛 Düzeltmeler
+- Panelden admin şifresi değiştirme çalışıyor.
+- Gece/gündüz modu: admin temasındaki renkler korunuyor, sayfa yenilenince yanıp sönme yok, modal/formlar açık moda uyuyor.
+- Link düzenlerken yeni şifre hash'leniyor, tarih alanları doğru kaydediliyor.
+- `/go/slug` şifreli linkte şifre penceresi otomatik açılıyor.
+- Temiz kurulumda `react-is` eksikliğinden kaynaklanan build hatası giderildi.
+- YunoHost restore scripti düzeltildi; upgrade kesintisiz build yapıyor ve install ile aynı kaynağı kullanıyor.
+
+### ⚡ İyileştirmeler
+- Ana sayfa JavaScript boyutu 2.49 MB → 144 kB (ikonlar sunucuda çiziliyor).
+- Analytics'te UTM parametreleri ve gerçek referrer kaydediliyor.
+- Docker healthcheck için veri döndürmeyen `/api/health` endpoint'i.
+
+---
+
 # 🎉 Personal Link Tree - Production Ready
 
 ## ✨ What's New
