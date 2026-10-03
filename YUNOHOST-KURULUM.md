@@ -5,7 +5,7 @@ Uygulama YunoHost üzerinde Docker container olarak çalışır; nginx, SSL, yed
 **Gereksinimler:** YunoHost 11.3 veya üstü (12.x önerilir), ~1 GB RAM (build sırasında), ~500 MB disk. Docker kurulum sırasında otomatik kurulur.
 
 > **Kaynak kod nereden geliyor?** Kurulum, güncelleme ve geri yükleme script'leri uygulama kodunu
-> `scripts/_common.sh` içindeki `source_repo` / `source_branch` adresinden çeker (şu an deneme reposunun `main` branch'i).
+> `scripts/_common.sh` içindeki `source_repo` / `source_branch` adresinden çeker (bu repo: `personal-linktree_ynh`, `main` branch'i).
 > Yani bir değişikliği denemek için önce `main`'e alınmış olması gerekir.
 
 ## 1. Test domaininde kurulum
@@ -18,7 +18,7 @@ sudo yunohost domain add test.ornek.com
 sudo yunohost domain cert install test.ornek.com
 
 # Uygulamayı kurun
-sudo yunohost app install https://github.com/rraeyz/personel-linktree-deneme_ynh \
+sudo yunohost app install https://github.com/rraeyz/personal-linktree_ynh \
   --args "domain=test.ornek.com&path=/&init_main_permission=visitors"
 ```
 
@@ -48,7 +48,7 @@ Bu komut nginx ayarını yeni domaine taşır ve container'ı yeni adresle yenid
 
 ```bash
 sudo yunohost app upgrade personal_linktree \
-  -u https://github.com/rraeyz/personel-linktree-deneme_ynh --force
+  -u https://github.com/rraeyz/personal-linktree_ynh --force
 ```
 
 - Yeni imaj derlenirken eski sürüm çalışmaya devam eder, kesinti yalnızca container değişirken birkaç saniyedir.
@@ -103,10 +103,18 @@ cd /opt/yunohost/personal_linktree && sudo docker-compose restart
 - **Kurulumdan sonra sayfa açılmıyor:** İmaj derlemesi uzun sürmüş olabilir. `docker logs` çıktısında `Ready` satırını bekleyin.
 - **E-posta gitmiyor:** Gmail için normal şifre değil "uygulama şifresi" gerekir (port 587, Secure kapalı).
 
-## Ana repoya geçiş
+## Deneme reposu ile çalışma
 
-Deneme reposunda her şey çalıştığında ana repoya geçmek için `scripts/_common.sh` içindeki `source_repo` adresini ana repo olarak değiştirin. Kurulu uygulamayı da ana repo adresiyle güncelleyin:
+Yeni özellikler önce deneme reposunda (`personel-linktree-deneme_ynh`) geliştirilip test domaininde denenir. Beğenilince bu repoya aktarılır. Deneme reposunun `scripts/_common.sh` dosyası kendi adresini, bu reponunki ise bu repoyu gösterir. Aktarırken bu satırın ana repo adresi olarak kalmasına dikkat edin.
+
+Test domainindeki kurulum deneme reposundan, ana domaindeki kurulum bu repodan güncellenir:
 
 ```bash
+# test domaini (deneme reposu)
+sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personel-linktree-deneme_ynh --force
+
+# ana domain (bu repo); aynı sunucuda ikinci kurulumun uygulama adı personal_linktree__2 olabilir
 sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personal-linktree_ynh --force
 ```
+
+Daha önce deneme reposundan kurulmuş bir uygulamayı bu repoya bağlamak için, yukarıdaki ana repo `upgrade` komutunu bir kez çalıştırmanız yeterli. Sonraki güncellemeler bu repodan gelir.
