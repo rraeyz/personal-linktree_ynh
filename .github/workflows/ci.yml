@@ -48,23 +48,41 @@ jobs:
           done
           docker logs linktree
 
-      - name: Duman testi (kurulum, giriş, görsel yükleme)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: API testleri (tests/e2e/api.test.mjs)
+        env:
+          BASE_URL: http://localhost:3000
+        run: node --test tests/e2e/api.test.mjs
+
+      - name: Container içi araçlar (yedekleme, migration)
         run: |
-          set -e
-          B=http://localhost:3000; J='content-type: application/json'
-          test "$(curl -s $B/api/setup)" = '{"setupRequired":true,"step":"initial"}'
-          curl -sf -c cj -X POST $B/api/setup -H "$J" \
-            -d '{"step":"initial","data":{"adminUsername":"admin","adminPassword":"ci-password-123","baseUrl":"http://localhost:3000"}}'
-          curl -sf -b cj -X POST $B/api/setup -H "$J" -d '{"step":"database","data":{"name":"CI"}}'
-          test "$(curl -s -o /dev/null -w '%{http_code}' $B/)" = 200
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST $B/api/setup -H "$J" -d '{"step":"initial","data":{}}')" = 403
-          curl -sf -c cj2 -X POST $B/api/auth/login -H "$J" -d '{"username":"admin","password":"ci-password-123"}'
-          # sharp'ın Alpine (musl) üzerinde çalıştığını doğrula
-          docker exec linktree node -e "require('sharp')({create:{width:800,height:600,channels:3,background:'#336699'}}).jpeg().toFile('/tmp/t.jpg').then(()=>console.log('sharp ok'))"
-          docker cp linktree:/tmp/t.jpg t.jpg
-          URL=$(curl -sf -b cj2 -F kind=avatar -F file=@t.jpg $B/api/admin/upload | python3 -c 'import json,sys;print(json.load(sys.stdin)["url"])')
-          test "$(curl -s -o /dev/null -w '%{http_code}' $B$URL)" = 200
-          echo "Duman testi başarılı"
+          docker exec linktree node /app/db-backup.js /app/prisma/backups/ci-test.db
+          docker exec linktree node /app/db-migrate.js /app/template.db /app/prisma/dev.db | grep "şeması güncel"
+
+      - name: Tarayıcı testi (tests/e2e/browser.mjs)
+        env:
+          BASE_URL: http://localhost:3000
+          ADMIN_PASSWORD: e2e-password-456
+          SCREENSHOT_DIR: ${{ runner.temp }}/screenshots
+        run: |
+          mkdir -p "$SCREENSHOT_DIR" "$RUNNER_TEMP/pw"
+          cp tests/e2e/browser.mjs "$RUNNER_TEMP/pw/"
+          cd "$RUNNER_TEMP/pw"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node browser.mjs
+
+      - name: Ekran görüntüleri
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ekran-goruntuleri
+          path: ${{ runner.temp }}/screenshots
+          if-no-files-found: ignore
 
       - name: Container logları
         if: always()
