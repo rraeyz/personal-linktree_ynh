@@ -46,3 +46,7 @@ docker-compose.yml
 README.md
 *.md
 docs/
+
+# Testler ve CI ayarları imaja gerekmez
+tests/
+.github/
