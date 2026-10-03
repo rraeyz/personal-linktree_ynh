@@ -1,13 +1,22 @@
 /** @type {import('next').NextConfig} */
+const securityHeaders = [
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+]
+
 const nextConfig = {
   output: 'standalone',
+  poweredByHeader: false,
+  // Görsel optimizasyon proxy'si kapalı: önceden hostname '**' ile herkes
+  // /_next/image üzerinden istediği uzak görseli sunucumuza işletebiliyordu.
+  // Yüklenen görseller zaten yükleme anında sharp ile küçültülüyor.
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+    unoptimized: true,
+  },
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders }]
   },
   // Native modülleri webpack bundle'ına ALMA, runtime'da node_modules'dan yükle
   // better-sqlite3 .node binary'si bundle'lanamaz

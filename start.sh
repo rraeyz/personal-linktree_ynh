@@ -11,8 +11,12 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+# Docker Compose: yeni "docker compose" eklentisi veya eski "docker-compose" komutu
+if docker compose version &> /dev/null; then
+    DC="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DC="docker-compose"
+else
     echo "❌ Docker Compose is not installed."
     echo "Please install Docker Compose first: https://docs.docker.com/compose/install/"
     exit 1
@@ -21,17 +25,23 @@ fi
 echo "✅ Docker and Docker Compose are installed"
 echo ""
 
+# Kurulum sihirbazının ayarlarını yazacağı dosya (yoksa Docker klasör olarak oluşturur)
+touch .env
+
 # Build and start containers
 echo "🏗️  Building Docker image..."
-docker-compose build
+$DC build
 
 echo ""
 echo "🚀 Starting application..."
-docker-compose up -d
+$DC up -d
 
 echo ""
 echo "⏳ Waiting for application to start..."
-sleep 5
+for i in $(seq 1 60); do
+    curl -sf http://localhost:${PORT:-3000}/api/health > /dev/null 2>&1 && break
+    sleep 2
+done
 
 # Check if container is running
 if [ "$(docker ps -q -f name=personal-linktree)" ]; then
@@ -44,13 +54,13 @@ if [ "$(docker ps -q -f name=personal-linktree)" ]; then
     echo "   3. Login at: http://localhost:3000/admin/login"
     echo ""
     echo "📖 Useful commands:"
-    echo "   View logs:    docker-compose logs -f"
-    echo "   Stop app:     docker-compose down"
-    echo "   Restart app:  docker-compose restart"
+    echo "   View logs:    $DC logs -f"
+    echo "   Stop app:     $DC down"
+    echo "   Restart app:  $DC restart"
     echo ""
 else
     echo ""
     echo "❌ Failed to start application"
-    echo "   Check logs: docker-compose logs"
+    echo "   Check logs: $DC logs"
     exit 1
 fi

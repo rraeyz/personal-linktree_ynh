@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { isAuthenticated } from '@/lib/auth'
+import { isAuthenticated, revokeAllSessions } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (newPassword.length < 6) {
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
       return NextResponse.json(
-        { error: 'Yeni şifre en az 6 karakter olmalı' },
+        { error: 'Yeni şifre en az 8 karakter olmalı' },
         { status: 400 }
       )
     }
@@ -45,14 +45,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Yeni şifreyi hash'le ve güncelle
-    const newPasswordHash = await bcrypt.hash(newPassword, 10)
+    const newPasswordHash = await bcrypt.hash(newPassword, 12)
 
     await prisma.admin.update({
       where: { id: admin.id },
       data: { passwordHash: newPasswordHash },
     })
 
-    return NextResponse.json({ message: 'Şifre başarıyla değiştirildi' })
+    // Şifre değişti: eski şifreyle açılmış tüm oturumlar (bu cihaz dahil) kapanır
+    await revokeAllSessions()
+
+    return NextResponse.json({ message: 'Şifre değiştirildi. Tüm oturumlar kapatıldı, yeni şifrenizle giriş yapın.' })
   } catch (error) {
     console.error('Password change error:', error)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

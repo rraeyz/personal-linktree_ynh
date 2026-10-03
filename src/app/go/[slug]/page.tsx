@@ -1,16 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
-import { UAParser } from 'ua-parser-js'
-import crypto from 'crypto'
-
-// Make geoip-lite optional for build
-let geoip: any = null
-try {
-  geoip = require('geoip-lite')
-} catch (error) {
-  console.log('GeoIP not available, will use default location data')
-}
+import { recordClick, utmFromSearchParams } from '@/lib/analytics'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,9 +9,10 @@ interface PageProps {
   params: {
     slug: string
   }
+  searchParams?: Record<string, string | string[] | undefined>
 }
 
-export default async function ShortLink({ params }: PageProps) {
+export default async function ShortLink({ params, searchParams }: PageProps) {
   const { slug } = params
 
   // Slug ile link'i bul
@@ -89,55 +81,9 @@ export default async function ShortLink({ params }: PageProps) {
 
   // Analytics verisi kaydet (server-side)
   try {
-    const headersList = headers()
-    const userAgent = headersList.get('user-agent') || ''
-    const parser = new UAParser(userAgent)
-    const result = parser.getResult()
-
-    // IP address ve GeoIP
-    const forwardedFor = headersList.get('x-forwarded-for')
-    const ip = forwardedFor?.split(',')[0] || 
-              headersList.get('x-real-ip') || 
-              '127.0.0.1'
-    const ipHash = crypto.createHash('sha256').update(ip).digest('hex').substring(0, 16)
-    
-    let geo: any = null
-    if (geoip) {
-      geo = geoip.lookup(ip !== '127.0.0.1' ? ip : '8.8.8.8') // Localhost için Google DNS kullan
-    }
-
-    // Referrer
-    const referrer = headersList.get('referer') || headersList.get('referrer') || ''
-
-    // Analytics kaydı oluştur
-    await prisma.analytics.create({
-      data: {
-        linkId: link.id,
-        userAgent,
-        device: result.device.type || 'desktop',
-        browser: result.browser.name || 'Unknown',
-        os: result.os.name || 'Unknown',
-        country: geo?.country || 'Unknown',
-        city: geo?.city || '',
-        region: geo?.region || '',
-        referrer,
-        utmSource: '',
-        utmMedium: '',
-        utmCampaign: '',
-        utmTerm: '',
-        utmContent: '',
-        ipHash,
-      }
-    })
-
-    // Link tıklama sayısını artır
-    await prisma.link.update({
-      where: { id: link.id },
-      data: {
-        clicks: {
-          increment: 1
-        }
-      }
+    await recordClick(link.id, headers(), {
+      referrer: headers().get('referer') || '',
+      utm: utmFromSearchParams(searchParams || {}),
     })
   } catch (error) {
     console.error('Analytics tracking error:', error)

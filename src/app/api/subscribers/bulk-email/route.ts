@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import nodemailer from 'nodemailer'
 import { generateEmailHTML, textToHTML } from '@/lib/emailTemplate'
+import { getBaseUrl } from '@/lib/url'
+import { unsubscribeUrl } from '@/lib/unsubscribe'
 
 // Email transporter yapılandırması - Database'den SMTP ayarlarını çek
 const createTransporter = async () => {
@@ -83,11 +85,12 @@ export async function POST(request: NextRequest) {
 
     // Email gönderimi - Transporter oluştur
     const { transporter, profile } = await createTransporter()
-    const fromEmail = profile.smtpFromName 
-      ? `"${profile.smtpFromName}" <${profile.smtpFrom}>` 
-      : profile.smtpFrom
-    
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const senderAddress = profile.smtpFrom || profile.smtpUser
+    const fromEmail = profile.smtpFromName
+      ? `"${profile.smtpFromName}" <${senderAddress}>`
+      : senderAddress
+
+    const baseUrl = getBaseUrl(request.headers)
     
     const results = {
       success: 0,
@@ -118,8 +121,9 @@ export async function POST(request: NextRequest) {
                 instagram: profile.instagramUrl,
                 github: profile.githubUrl,
               },
-              unsubscribeUrl: `${baseUrl}/`,
+              unsubscribeUrl: unsubscribeUrl(baseUrl, subscriber.email),
               viewInBrowserUrl: `${baseUrl}/`,
+              baseUrl,
             })
 
             await transporter.sendMail({
@@ -127,6 +131,14 @@ export async function POST(request: NextRequest) {
               to: subscriber.email,
               subject: subject,
               html: htmlContent,
+              // Gmail/Outlook'taki "Abonelikten çık" butonu (RFC 8058 tek tıkla çıkış)
+              list: {
+                unsubscribe: {
+                  url: unsubscribeUrl(baseUrl, subscriber.email, '/api/unsubscribe'),
+                  comment: 'Abonelikten çık',
+                },
+              },
+              headers: { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
             })
             results.success++
           } catch (error: any) {

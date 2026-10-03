@@ -12,18 +12,17 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL:-file:/app/prisma/dev.db}
-      # These will be set via setup wizard on first run
-      # Or you can set them here before starting
-      - JWT_SECRET=${JWT_SECRET:-}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
-      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      # JWT_SECRET burada TANIMLANMAZ: kurulum sihirbazı ./.env dosyasına yazar ve uygulama açılışta
+      # oradan okur. Burada boş tanımlamak .env'deki değeri ezer (her yeniden başlatmada oturumlar
+      # ve bültendeki "abonelikten çık" linkleri geçersiz olurdu).
     volumes:
       - db-data:/app/prisma
       - uploads:/app/public/uploads
-      # Mount .env file if it exists (for manual configuration)
+      # Kurulum sihirbazının yazdığı ayarlar (JWT_SECRET). İlk çalıştırmadan önce `touch .env` ile
+      # boş dosya oluşturun; yoksa Docker bunu klasör olarak oluşturur ve ayar kaydedilemez.
       - ./.env:/app/.env
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/profile"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

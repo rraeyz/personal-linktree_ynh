@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaChartLine, FaMousePointer, FaLink, FaCrown, FaGlobe, FaDesktop, FaMobile, FaCalendar, FaInfoCircle } from 'react-icons/fa'
+import { FaChartLine, FaMousePointer, FaLink, FaCrown, FaGlobe, FaDesktop, FaMobile, FaCalendar, FaInfoCircle, FaEye, FaUsers, FaPercent, FaBullhorn } from 'react-icons/fa'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface AnalyticsProps {
@@ -69,9 +69,17 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
           month: 'short', 
           day: 'numeric' 
         }),
-        clicks: item.count
+        clicks: item.count,
+        views: item.views || 0
       }))
     : getLast7Days()
+
+  // Profil görüntülenme istatistikleri (seçili zaman aralığı için)
+  const views = analytics?.views || 0
+  const uniqueVisitors = analytics?.uniqueVisitors || 0
+  const engagedVisitors = analytics?.engagedVisitors || 0
+  const engagementRate = uniqueVisitors > 0 ? Math.round((engagedVisitors / uniqueVisitors) * 1000) / 10 : 0
+  const campaigns: { name: string; views: number; clicks: number }[] = analytics?.campaigns || []
 
   // Grafik başlığı
   const getTrendTitle = () => {
@@ -224,6 +232,44 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
         </div>
       </div>
 
+      {/* Görüntülenme istatistikleri */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Profil Görüntülenme</p>
+              <p className="text-3xl font-bold text-white">{views.toLocaleString('tr-TR')}</p>
+            </div>
+            <div className="p-4 bg-sky-500/20 rounded-xl">
+              <FaEye className="w-6 h-6 text-sky-400" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Tekil Ziyaretçi</p>
+              <p className="text-3xl font-bold text-white">{uniqueVisitors.toLocaleString('tr-TR')}</p>
+            </div>
+            <div className="p-4 bg-indigo-500/20 rounded-xl">
+              <FaUsers className="w-6 h-6 text-indigo-400" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Etkileşim Oranı</p>
+              <p className="text-3xl font-bold text-white">%{engagementRate.toLocaleString('tr-TR')}</p>
+              <p className="text-xs text-gray-500 mt-1">{uniqueVisitors} ziyaretçiden {engagedVisitors} kişi en az bir linke tıkladı</p>
+            </div>
+            <div className="p-4 bg-emerald-500/20 rounded-xl">
+              <FaPercent className="w-6 h-6 text-emerald-400" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Trend Chart */}
@@ -238,7 +284,9 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
                 contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #374151', borderRadius: '8px' }}
                 labelStyle={{ color: '#fff' }}
               />
-              <Line type="monotone" dataKey="clicks" stroke="#a855f7" strokeWidth={2} dot={{ fill: '#a855f7', r: 4 }} />
+              <Legend wrapperStyle={{ color: '#9ca3af' }} />
+              <Line type="monotone" dataKey="views" name="Görüntülenme" stroke="#38bdf8" strokeWidth={2} dot={{ fill: '#38bdf8', r: 3 }} />
+              <Line type="monotone" dataKey="clicks" name="Tıklama" stroke="#a855f7" strokeWidth={2} dot={{ fill: '#a855f7', r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -410,6 +458,40 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
           )}
         </>
       )}
+
+      {/* UTM kampanyaları */}
+      <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
+          <FaBullhorn className="text-purple-400" /> Kampanyalar (UTM)
+        </h3>
+        <p className="text-sm text-gray-400 mb-4">
+          Paylaştığınız linke <code className="text-purple-300">?utm_source=instagram&amp;utm_campaign=ekim</code> gibi parametreler eklerseniz hangi kampanyanın ne kadar ziyaret ve tıklama getirdiğini burada görürsünüz.
+        </p>
+        {campaigns.length === 0 ? (
+          <p className="text-sm text-gray-500">Bu aralıkta UTM parametreli ziyaret yok.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-400 border-b border-gray-800">
+                  <th className="py-2 pr-4 font-medium">Kaynak / Ortam / Kampanya</th>
+                  <th className="py-2 pr-4 font-medium text-right">Görüntülenme</th>
+                  <th className="py-2 font-medium text-right">Tıklama</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campaigns.slice(0, 20).map((campaign) => (
+                  <tr key={campaign.name} className="border-b border-gray-800/50 text-gray-300">
+                    <td className="py-2 pr-4 break-all">{campaign.name}</td>
+                    <td className="py-2 pr-4 text-right">{campaign.views}</td>
+                    <td className="py-2 text-right">{campaign.clicks}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Export Analytics Button */}
       {hasRealData && (

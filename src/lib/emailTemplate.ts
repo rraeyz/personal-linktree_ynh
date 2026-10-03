@@ -1,6 +1,5 @@
 // Email Template Generator - Profesyonel HTML Email Şablonu
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
 interface SocialLink {
   platform: string;
   url: string;
@@ -24,6 +23,8 @@ interface EmailTemplateOptions {
   };
   unsubscribeUrl?: string;
   viewInBrowserUrl?: string;
+  // Sitenin dış adresi (https://alanadi.com): ikonlar ve logo için tam adres gerekir
+  baseUrl?: string;
 }
 
 export function generateEmailHTML(options: EmailTemplateOptions): string {
@@ -36,16 +37,18 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
     socialLinks = {},
     unsubscribeUrl,
     viewInBrowserUrl,
+    baseUrl = '',
   } = options;
 
-  // Sosyal medya linklerini filtrele ve formatla (Base64 embedded SVG)
+  // Sosyal medya linklerini filtrele ve formatla.
+  // İkonlar sunucuda barındırılan PNG: Gmail ne SVG ne de data: URI görselleri gösteriyor.
   const activeSocialLinks: SocialLink[] = [];
   
   if (socialLinks.linkedin) {
     activeSocialLinks.push({
       platform: 'LinkedIn',
       url: socialLinks.linkedin,
-      icon: `${BASE_URL}/icons/linkedin.svg`,
+      icon: `${baseUrl}/icons/linkedin.png`,
       color: '#0A66C2'
     });
   }
@@ -54,7 +57,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
     activeSocialLinks.push({
       platform: 'X (Twitter)',
       url: socialLinks.twitter,
-      icon: `${BASE_URL}/icons/x.svg`,
+      icon: `${baseUrl}/icons/x.png`,
       color: '#000000'
     });
   }
@@ -63,7 +66,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
     activeSocialLinks.push({
       platform: 'Discord',
       url: socialLinks.discord,
-      icon: `${BASE_URL}/icons/discord.svg`,
+      icon: `${baseUrl}/icons/discord.png`,
       color: '#5865F2'
     });
   }
@@ -72,7 +75,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
     activeSocialLinks.push({
       platform: 'YouTube',
       url: socialLinks.youtube,
-      icon: `${BASE_URL}/icons/youtube.svg`,
+      icon: `${baseUrl}/icons/youtube.png`,
       color: '#FF0000'
     });
   }
@@ -81,7 +84,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
     activeSocialLinks.push({
       platform: 'Instagram',
       url: socialLinks.instagram,
-      icon: `${BASE_URL}/icons/instagram.svg`,
+      icon: `${baseUrl}/icons/instagram.png`,
       color: '#E4405F'
     });
   }
@@ -90,7 +93,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
     activeSocialLinks.push({
       platform: 'GitHub',
       url: socialLinks.github,
-      icon: `${BASE_URL}/icons/github.svg`,
+      icon: `${baseUrl}/icons/github.png`,
       color: '#333333'
     });
   }

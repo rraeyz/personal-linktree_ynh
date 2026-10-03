@@ -10,6 +10,7 @@ interface ProfileSectionProps {
   imageUrl: string
   verified?: boolean
   badges?: string
+  coverImage?: string
 }
 
 // Badge ikonları
@@ -27,7 +28,7 @@ const badgeColors: Record<string, string> = {
   supporter: 'text-pink-400',
 }
 
-export default function ProfileSection({ name, bio, imageUrl, verified, badges }: ProfileSectionProps) {
+export default function ProfileSection({ name, bio, imageUrl, verified, badges, coverImage = '' }: ProfileSectionProps) {
   let badgeArray: string[] = []
   try {
     badgeArray = badges ? JSON.parse(badges) : []
@@ -41,11 +42,19 @@ export default function ProfileSection({ name, bio, imageUrl, verified, badges }
       transition={{ duration: 0.6 }}
       className="flex flex-col items-center text-center"
     >
+      {/* Kapak görseli: varsa avatar yarı yarıya üstüne biner */}
+      {coverImage && (
+        <div className="w-full aspect-[3/1] rounded-dynamic overflow-hidden shadow-xl border border-dynamic">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={coverImage} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
+
       <motion.div
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative w-32 h-32 mb-6"
+        className={`relative w-32 h-32 mb-6 ${coverImage ? '-mt-16' : ''}`}
       >
         <div className="absolute inset-0 gradient-primary-accent rounded-full blur-lg opacity-50 animate-pulse" />
         <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-dynamic-primary shadow-2xl">
@@ -56,8 +65,11 @@ export default function ProfileSection({ name, bio, imageUrl, verified, badges }
             className="object-cover"
             priority
             onError={(e) => {
+              // Yalnızca bir kez varsayılana dön; varsayılan da yüklenemezse döngüye girme
               const target = e.target as HTMLImageElement
-              target.src = '/default-avatar.jpg'
+              if (!target.src.endsWith('/default-avatar.jpg')) {
+                target.src = '/default-avatar.jpg'
+              }
             }}
           />
         </div>

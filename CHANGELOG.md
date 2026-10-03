@@ -1,3 +1,68 @@
+# 1.1.0
+
+### 🔒 Güvenlik
+- Şifre değişince tüm oturumlar kapanıyor; panelde "tüm cihazlardan çıkış" butonu. Giriş deneme sınırı yalnızca hatalı denemeleri sayıyor.
+- YunoHost'ta container portu yalnızca yerel arayüze bağlanıyor (Docker, YunoHost güvenlik duvarını atlayıp uygulamayı nginx/HTTPS olmadan dışarı açabiliyordu).
+- Kurulum sihirbazı (`/api/setup`) tamamlandıktan sonra tekrar çalıştırılamıyor; önceden herkes admin şifresini değiştirebiliyordu.
+- Admin şifresi `.env`'de düz metin yerine veritabanında bcrypt hash olarak tutuluyor. Eski kurulumlar ilk girişte otomatik taşınıyor.
+- `GET /api/profile` (SMTP şifresi dahil) ve `GET /api/links` (şifreli/kapalı linkler) artık giriş gerektiriyor.
+- Şifreli linklerin gerçek URL'si sayfa kaynağında görünmüyor.
+- Login, link şifresi, iletişim formu ve abonelik için rate limit; iletişim formunda HTML escape ve honeypot.
+- Ham IP adresi yerine hash saklanıyor (KVKK/GDPR).
+
+### 🐛 Düzeltmeler
+- Panelden admin şifresi değiştirme çalışıyor.
+- Gece/gündüz modu: admin temasındaki renkler korunuyor, sayfa yenilenince yanıp sönme yok, modal/formlar açık moda uyuyor.
+- Link düzenlerken yeni şifre hash'leniyor, tarih alanları doğru kaydediliyor.
+- `/go/slug` şifreli linkte şifre penceresi otomatik açılıyor.
+- Paylaş butonu `https://yoursite.com` yerine gerçek sayfa adresini paylaşıyor.
+- Sosyal medya önizlemelerinde (og:image) görsel çıkmıyordu; adres artık doğru domainden üretiliyor.
+- E-postalardaki sosyal ikonlar Gmail'de görünüyor (barındırılan PNG); gönderen adresi boş kalmıyor.
+- Doğrudan `http://sunucu:3000` erişiminde admin girişi yapılamıyordu.
+- `default-avatar.jpg` aslında SVG'ydi; gerçek JPEG ile değiştirildi.
+- Günlük ve YunoHost yedekleri, çalışan veritabanını tutarlı şekilde kopyalıyor (önceden `cat`/`cp` ile bozuk yedek riski vardı).
+- YunoHost restore script'i yanlış yoldan `_common.sh` yüklüyordu (restore ilk satırda çökerdi).
+- Kök `docker-compose.yml` boş `JWT_SECRET` tanımlayıp sihirbazın ayarını eziyordu (her yeniden başlatmada oturumlar ve abonelikten çık linkleri bozuluyordu).
+- Kurulum sihirbazı yeniden çalıştırıldığında (şifre sıfırlama) mevcut profil bilgileri ezilmiyor.
+- Manifest Docker deposu sunucunun Debian sürümüne göre seçiliyor (önceden sabit `bullseye`); minimum YunoHost 11.3.
+- Temiz kurulumda `react-is` eksikliğinden kaynaklanan build hatası giderildi.
+- Tema editöründeki yazı tipleri (Inter dışında) yüklenmiyordu; Türkçe karakterler (ğ, ş, ı, İ) başka fonta düşüyordu.
+- "Buton Stili" ve "Köşe Yuvarlaklığı" ayarları sayfaya uygulanmıyordu.
+- Link düzenleme formunda şifre, zamanlama ve kısa link alanları yoktu; şifre alanına hash dolduruluyordu.
+- Zamanlama tarihleri saat dilimi yüzünden her düzenlemede kayıyordu (Türkiye'de 3 saat).
+- Admin panelinin yapışkan üst menüsü çalışmıyordu (`overflow-x: hidden` → `clip`).
+- YunoHost restore scripti düzeltildi; upgrade kesintisiz build yapıyor ve install ile aynı kaynağı kullanıyor.
+
+### ✨ Yeni Özellikler
+- **Bloklar:** metin, portfolyo kartı, geri sayım, galeri (tam ekran görüntüleyici), Spotify.
+- **Düzen:** profil kapak görseli; klasik liste veya bento ızgara düzeni.
+- **Öne çıkan link** ve **link önizleme görseli** (yükleme ya da siteden og:image ile otomatik alma; SSRF korumalı).
+- **Canlı önizleme:** admin panelinde telefon çerçevesinde site, kayıtlardan sonra kendiliğinden yenilenir.
+- Sosyal medya hesapları ana sayfada ikon olarak (Ayarlar → E-posta İmzası'ndan açılıp kapatılabilir).
+- YunoHost `change_url` desteği: `yunohost app change-url` ile verilerle birlikte başka domaine taşıma.
+- Eski base64 görseller ilk açılışta otomatik olarak dosyaya taşınıyor.
+- **Görsel yükleme:** profil fotoğrafı, favicon, sosyal medya görseli ve arka plan sunucuya yükleniyor; otomatik boyutlandırma, EXIF/konum bilgisi silme.
+- **Profil görüntülenme analitiği:** görüntülenme, tekil ziyaretçi, etkileşim oranı, UTM kampanya tablosu.
+- **Bülten:** kişiye özel "abonelikten çık" sayfası ve Gmail/Outlook tek tıkla çıkış.
+- **Rehbere Ekle (vCard):** isteğe bağlı, varsayılan kapalı.
+- `robots.txt` ve `sitemap.xml`.
+- Upgrade'lerde veritabanı şeması otomatik güncelleniyor (`db-migrate.js`, öncesinde yedek alınır).
+
+### 🧹 Temizlik ve dokümantasyon
+- Kullanılmayan eski paket kopyası (`yunohost/`) ve `conf/app.src` kaldırıldı.
+- README, YunoHost, Docker ve hızlı başlangıç kılavuzları güncel ve doğru bilgilerle yeniden yazıldı (test domaininden ana domaine geçiş dahil).
+- `tests/e2e/`: uçtan uca API ve tarayıcı testleri; CI bunları Docker container'ına karşı çalıştırıyor.
+
+### ⚡ İyileştirmeler
+- Next.js 14.1.0 → 14.2.35.
+- Ana sayfa JavaScript boyutu 2.49 MB → 146 kB (ikonlar sunucuda çiziliyor).
+- Analytics'te UTM parametreleri ve gerçek referrer kaydediliyor; botlar sayılmıyor.
+- Güvenlik başlıkları, CSRF için Origin kontrolü, açık görsel proxy'si kapatıldı.
+- Docker build lock dosyasıyla (`npm ci`) yapılıyor; GitHub Actions CI (typecheck, lint, build, Docker duman testi).
+- Docker healthcheck için veri döndürmeyen `/api/health` endpoint'i.
+
+---
+
 # 🎉 Personal Link Tree - Production Ready
 
 ## ✨ What's New

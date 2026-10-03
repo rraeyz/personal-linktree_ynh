@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
 
     // Tüm analytics verilerini sil
     const result = await prisma.analytics.deleteMany({})
+    await prisma.pageView.deleteMany({})
     
     // Link clicks'leri de sıfırla
     await prisma.link.updateMany({

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FaSave, FaImage, FaGlobe } from 'react-icons/fa'
 import Image from 'next/image'
+import ImageUploadButton from './ImageUploadButton'
 
 interface ProfileEditorProps {
   initialProfile: any
@@ -13,6 +14,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
   const [name, setName] = useState(initialProfile?.name || 'Your Name')
   const [bio, setBio] = useState(initialProfile?.bio || 'Your bio goes here')
   const [imageUrl, setImageUrl] = useState(initialProfile?.imageUrl || '/default-avatar.jpg')
+  const [coverImage, setCoverImage] = useState(initialProfile?.coverImage || '')
   const [pageTitle, setPageTitle] = useState(initialProfile?.pageTitle || '')
   const [pageDescription, setPageDescription] = useState(initialProfile?.pageDescription || '')
   const [ogImageUrl, setOgImageUrl] = useState(initialProfile?.ogImageUrl || '')
@@ -20,83 +22,12 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
   const [contactEmail, setContactEmail] = useState(initialProfile?.contactEmail || '')
   const [contactPhone, setContactPhone] = useState(initialProfile?.contactPhone || '')
   const [contactAddress, setContactAddress] = useState(initialProfile?.contactAddress || '')
+  const [showVCard, setShowVCard] = useState<boolean>(initialProfile?.showVCard || false)
   const [verified, setVerified] = useState(initialProfile?.verified || false)
   const [badges, setBadges] = useState(initialProfile?.badges || '')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const [faviconUploading, setFaviconUploading] = useState(false)
   const router = useRouter()
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Dosya boyutu kontrolü (maks 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Dosya boyutu 2MB\'dan küçük olmalıdır')
-      return
-    }
-
-    // Dosya tipi kontrolü
-    if (!file.type.startsWith('image/')) {
-      alert('Lütfen bir görsel dosyası seçin')
-      return
-    }
-
-    setUploading(true)
-    try {
-      // Dosyayı base64'e çevir
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string)
-        setUploading(false)
-      }
-      reader.onerror = () => {
-        alert('Dosya yükleme hatası')
-        setUploading(false)
-      }
-      reader.readAsDataURL(file)
-    } catch (error) {
-      alert('Dosya yükleme hatası')
-      setUploading(false)
-    }
-  }
-
-  const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Dosya boyutu kontrolü (maks 500KB - favicon'lar küçük olmalı)
-    if (file.size > 500 * 1024) {
-      alert('Favicon boyutu 500KB\'dan küçük olmalıdır')
-      return
-    }
-
-    // Dosya tipi kontrolü
-    if (!file.type.startsWith('image/')) {
-      alert('Lütfen bir görsel dosyası seçin (PNG, ICO, SVG önerilir)')
-      return
-    }
-
-    setFaviconUploading(true)
-    try {
-      // Dosyayı base64'e çevir
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFaviconUrl(reader.result as string)
-        setFaviconUploading(false)
-      }
-      reader.onerror = () => {
-        alert('Dosya yükleme hatası')
-        setFaviconUploading(false)
-      }
-      reader.readAsDataURL(file)
-    } catch (error) {
-      alert('Dosya yükleme hatası')
-      setFaviconUploading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,9 +43,11 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           name, 
           bio, 
           imageUrl,
+          coverImage,
           contactEmail,
           contactPhone,
           contactAddress,
+          showVCard,
           verified,
           badges
         }),
@@ -161,7 +94,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               className="object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement
-                target.src = '/default-avatar.jpg'
+                if (!target.src.endsWith('/default-avatar.jpg')) target.src = '/default-avatar.jpg'
               }}
             />
           </div>
@@ -208,17 +141,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           <div className="space-y-3">
             {/* Dosya Yükleme */}
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-lg transition-colors cursor-pointer">
-                <FaImage className="w-4 h-4" />
-                <span>{uploading ? 'Yükleniyor...' : 'Dosya Yükle'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={uploading}
-                />
-              </label>
+              <ImageUploadButton kind="avatar" onUploaded={setImageUrl} />
               <span className="text-sm text-gray-500">veya URL girin:</span>
             </div>
 
@@ -241,7 +164,30 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           </div>
           
           <p className="text-xs text-gray-500 mt-2">
-            Maksimum 2MB • PNG, JPG, GIF desteklenir
+            Maksimum 10MB • JPG, PNG, WEBP, GIF • Otomatik olarak 512x512 boyutuna küçültülür
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Kapak Görseli (opsiyonel)
+          </label>
+          {coverImage && (
+            <div className="relative mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={coverImage} alt="Kapak önizleme" className="w-full aspect-[3/1] object-cover rounded-xl border border-gray-700" />
+              <button
+                type="button"
+                onClick={() => setCoverImage('')}
+                className="absolute top-2 right-2 px-3 py-1 text-xs bg-black/70 text-white rounded-lg hover:bg-black/90"
+              >
+                Kaldır
+              </button>
+            </div>
+          )}
+          <ImageUploadButton kind="cover" onUploaded={setCoverImage} label="Kapak Görseli Yükle" />
+          <p className="text-xs text-gray-500 mt-2">
+            Profil fotoğrafınızın arkasında geniş bir banner olarak görünür • Otomatik olarak 1500x500 boyutuna kırpılır
           </p>
         </div>
 
@@ -300,6 +246,21 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                 placeholder="Şehir, Ülke"
               />
             </div>
+
+            <label className="flex items-start gap-3 p-4 bg-dark-bg border border-gray-700 rounded-xl cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showVCard}
+                onChange={(e) => setShowVCard(e.target.checked)}
+                className="mt-1 w-4 h-4 accent-purple-500"
+              />
+              <span>
+                <span className="block text-sm font-medium text-white">Ziyaretçilere &quot;Rehbere Ekle&quot; butonu göster</span>
+                <span className="block text-xs text-gray-400 mt-1">
+                  Açılırsa adınız, yukarıdaki e-posta, telefon ve adres ile profil fotoğrafınız herkesin indirebileceği bir kişi kartına (vCard) eklenir. Kapalıyken bu bilgiler sayfada görünmez.
+                </span>
+              </span>
+            </label>
           </div>
         </div>
 
@@ -348,9 +309,12 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               <label htmlFor="ogImageUrl" className="block text-sm font-medium text-gray-300 mb-2">
                 Social Media Görseli (Open Graph)
               </label>
+              <div className="mb-2">
+                <ImageUploadButton kind="og" onUploaded={setOgImageUrl} label="Görsel Yükle (1200x630)" />
+              </div>
               <input
                 id="ogImageUrl"
-                type="url"
+                type="text"
                 value={ogImageUrl}
                 onChange={(e) => setOgImageUrl(e.target.value)}
                 className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
@@ -369,17 +333,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               <div className="space-y-3">
                 {/* Dosya Yükleme */}
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors cursor-pointer">
-                    <FaGlobe className="w-4 h-4" />
-                    <span>{faviconUploading ? 'Yükleniyor...' : 'Favicon Yükle'}</span>
-                    <input
-                      type="file"
-                      accept="image/*,.ico"
-                      onChange={handleFaviconUpload}
-                      className="hidden"
-                      disabled={faviconUploading}
-                    />
-                  </label>
+                  <ImageUploadButton kind="favicon" onUploaded={setFaviconUrl} label="Favicon Yükle" />
                   <span className="text-sm text-gray-500">veya URL girin:</span>
                 </div>
 

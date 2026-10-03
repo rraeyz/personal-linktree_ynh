@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+jobs:
+  check:
+    name: Typecheck, lint, build
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./prisma/ci.db
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npx next lint
+      - run: npx next build
+
+  docker:
+    name: Docker imajı + duman testi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: İmajı derle
+        run: docker build -t linktree-ci .
+
+      - name: Container'ı başlat
+        run: |
+          mkdir -p "$RUNNER_TEMP/data/prisma" "$RUNNER_TEMP/data/uploads"
+          touch "$RUNNER_TEMP/data/.env"
+          docker run -d --name linktree -p 3000:3000 \
+            -v "$RUNNER_TEMP/data/prisma:/app/prisma" \
+            -v "$RUNNER_TEMP/data/uploads:/app/public/uploads" \
+            -v "$RUNNER_TEMP/data/.env:/app/.env" \
+            linktree-ci
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000/api/health && break
+            sleep 2
+          done
+          docker logs linktree
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: API testleri (tests/e2e/api.test.mjs)
+        env:
+          BASE_URL: http://localhost:3000
+        run: node --test tests/e2e/api.test.mjs
+
+      - name: Container içi araçlar (yedekleme, migration)
+        run: |
+          docker exec linktree node /app/db-backup.js /app/prisma/backups/ci-test.db
+          docker exec linktree node /app/db-migrate.js /app/template.db /app/prisma/dev.db | grep "şeması güncel"
+
+      - name: Tarayıcı testi (tests/e2e/browser.mjs)
+        env:
+          BASE_URL: http://localhost:3000
+          ADMIN_PASSWORD: e2e-password-456
+          SCREENSHOT_DIR: ${{ runner.temp }}/screenshots
+        run: |
+          mkdir -p "$SCREENSHOT_DIR" "$RUNNER_TEMP/pw"
+          cp tests/e2e/browser.mjs "$RUNNER_TEMP/pw/"
+          cd "$RUNNER_TEMP/pw"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node browser.mjs
+
+      - name: Ekran görüntüleri
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ekran-goruntuleri
+          path: ${{ runner.temp }}/screenshots
+          if-no-files-found: ignore
+
+      - name: Container logları
+        if: always()
+        run: docker logs linktree || true

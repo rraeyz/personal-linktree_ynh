@@ -1,6 +1,0 @@
-SOURCE_URL=https://github.com/rraeyz/personal-linktree_ynh/archive/refs/heads/main.tar.gz
-SOURCE_SUM=auto
-SOURCE_SUM_PRG=sha256sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_EXTRACT=true
