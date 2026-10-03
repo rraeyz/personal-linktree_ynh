@@ -1,59 +1,41 @@
-import { NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
-import { signToken } from '@/lib/auth'
-import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import { isSetupComplete, setAuthCookie, verifyAdminCredentials } from '@/lib/auth'
+import { getClientIp, isRateLimited } from '@/lib/security'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Brute-force koruması: IP başına 15 dakikada 10 deneme
+    if (isRateLimited(`login:${getClientIp(request.headers)}`, 10, 15 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: 'Çok fazla deneme yapıldı. Lütfen 15 dakika sonra tekrar deneyin.' },
+        { status: 429 }
+      )
+    }
+
     const { username, password } = await request.json()
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
       return NextResponse.json(
         { error: 'Kullanıcı adı ve şifre gerekli' },
         { status: 400 }
       )
     }
 
-    // Kullanıcı adı her zaman "admin" olmalı
-    const adminUsername = process.env.ADMIN_USERNAME || 'admin'
-    
-    if (username !== adminUsername) {
-      return NextResponse.json(
-        { error: 'Kullanıcı adı veya şifre hatalı' },
-        { status: 401 }
-      )
-    }
-
-    // Environment variable'dan şifreyi kontrol et
-    const adminPassword = process.env.ADMIN_PASSWORD
-    
-    if (!adminPassword) {
+    if (!(await isSetupComplete())) {
       return NextResponse.json(
         { error: 'Sistem ayarları eksik. Lütfen setup yapın.' },
         { status: 500 }
       )
     }
 
-    // Şifre kontrolü
-    if (password !== adminPassword) {
+    if (!(await verifyAdminCredentials(username, password))) {
       return NextResponse.json(
         { error: 'Kullanıcı adı veya şifre hatalı' },
         { status: 401 }
       )
     }
 
-    // JWT token oluştur
-    const token = signToken({ userId: 1, username: adminUsername })
-
-    // Cookie'ye kaydet
-    const cookieStore = await cookies()
-    cookieStore.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 gün
-    })
+    await setAuthCookie(username)
 
     return NextResponse.json({ success: true })
   } catch (error) {

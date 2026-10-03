@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { IconType } from 'react-icons'
 import * as FaIcons from 'react-icons/fa'
@@ -18,6 +18,7 @@ interface LinkButtonProps {
   contactEmail?: string
   hasPassword?: boolean
   passwordHint?: string
+  autoOpen?: boolean
 }
 
 export default function LinkButton({ 
@@ -28,11 +29,15 @@ export default function LinkButton({
   type = 'link', 
   contactEmail = '',
   hasPassword = false,
-  passwordHint = ''
+  passwordHint = '',
+  autoOpen = false
 }: LinkButtonProps) {
   const [showContactForm, setShowContactForm] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
-  const [verifiedUrl, setVerifiedUrl] = useState('')
+
+  useEffect(() => {
+    if (autoOpen && hasPassword) setShowPasswordModal(true)
+  }, [autoOpen, hasPassword])
   
   // Custom URL mı yoksa ikon adı mı kontrol et
   const isCustomIcon = icon.startsWith('http')
@@ -50,24 +55,35 @@ export default function LinkButton({
     try {
       await fetch(`/api/links/${linkId}/click`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Ziyaretçinin geldiği yer ve sayfa URL'sindeki UTM parametreleri analytics'e yazılır
+        body: JSON.stringify({ referrer: document.referrer, search: window.location.search }),
+        keepalive: true,
       })
     } catch (error) {
       console.error('Click tracking failed:', error)
     }
   }
 
-  // Normal link click - tracking yap sonra aç
-  const handleLinkClick = async (e: React.MouseEvent) => {
-    if (hasPassword) {
-      e.preventDefault()
-      setShowPasswordModal(true)
-      await handleClick()
+  // Yeni sekmede aç; tarayıcı popup'ı engellerse aynı sekmede devam et
+  const openUrl = (target: string) => {
+    const opened = window.open(target, '_blank')
+    if (opened) {
+      opened.opener = null
     } else {
-      e.preventDefault()
-      await handleClick()
-      // Tracking tamamlandıktan sonra linki aç
-      window.open(url, '_blank')
+      window.location.href = target
     }
+  }
+
+  // Normal link click - linki hemen aç (popup engelleyicilere takılmaz), tracking arkada gider
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (hasPassword) {
+      setShowPasswordModal(true)
+    } else {
+      openUrl(url)
+    }
+    handleClick()
   }
 
   // Contact form toggle
@@ -81,7 +97,7 @@ export default function LinkButton({
     setShowPasswordModal(false)
     // Open the verified URL directly
     if (verifiedLink) {
-      window.open(verifiedLink, '_blank')
+      openUrl(verifiedLink)
     }
   }
 
@@ -90,7 +106,8 @@ export default function LinkButton({
     return (
       <>
         <motion.a
-          href="#"
+          href={hasPassword ? '#' : url}
+          rel="noopener noreferrer"
           onClick={handleLinkClick}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

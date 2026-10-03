@@ -18,6 +18,7 @@ export default function SettingsPanel() {
   const [smtpPort, setSmtpPort] = useState(587)
   const [smtpUser, setSmtpUser] = useState('')
   const [smtpPassword, setSmtpPassword] = useState('')
+  const [hasSmtpPassword, setHasSmtpPassword] = useState(false)
   const [smtpFrom, setSmtpFrom] = useState('')
   const [smtpFromName, setSmtpFromName] = useState('')
   const [smtpSecure, setSmtpSecure] = useState(false)
@@ -57,7 +58,8 @@ export default function SettingsPanel() {
           setSmtpHost(data.smtpHost || '')
           setSmtpPort(data.smtpPort || 587)
           setSmtpUser(data.smtpUser || '')
-          setSmtpPassword(data.smtpPassword || '')
+          setSmtpPassword('')
+          setHasSmtpPassword(!!data.hasSmtpPassword)
           setSmtpFrom(data.smtpFrom || '')
           setSmtpFromName(data.smtpFromName || '')
           setSmtpSecure(data.smtpSecure || false)
@@ -82,8 +84,8 @@ export default function SettingsPanel() {
       return
     }
 
-    if (newPassword.length < 6) {
-      setMessage('Yeni şifre en az 6 karakter olmalı')
+    if (newPassword.length < 8) {
+      setMessage('Yeni şifre en az 8 karakter olmalı')
       return
     }
 
@@ -236,6 +238,8 @@ export default function SettingsPanel() {
       const data = await response.json()
 
       if (response.ok) {
+        setHasSmtpPassword(!!data.hasSmtpPassword)
+        setSmtpPassword('')
         setSmtpMessage('SMTP ayarları kaydedildi!')
       } else {
         setSmtpMessage(data.error || 'Kaydetme başarısız')
@@ -315,7 +319,7 @@ export default function SettingsPanel() {
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
@@ -329,7 +333,7 @@ export default function SettingsPanel() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
@@ -528,7 +532,8 @@ export default function SettingsPanel() {
               type="password"
               value={smtpPassword}
               onChange={(e) => setSmtpPassword(e.target.value)}
-              placeholder="••••••••••••••••"
+              placeholder={hasSmtpPassword ? 'Kayıtlı — değiştirmek için yeni şifre girin' : '••••••••••••••••'}
+              autoComplete="new-password"
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>

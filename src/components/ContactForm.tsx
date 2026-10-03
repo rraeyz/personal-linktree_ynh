@@ -14,6 +14,7 @@ export default function ContactForm({ contactEmail, onClose }: ContactFormProps)
     name: '',
     email: '',
     message: '',
+    website: '', // honeypot - botları yakalamak için gizli alan
   })
   const [sending, setSending] = useState(false)
   const [message, setMessage] = useState('')
@@ -31,17 +32,20 @@ export default function ContactForm({ contactEmail, onClose }: ContactFormProps)
       })
 
       if (!response.ok) {
-        throw new Error('Gönderim başarısız')
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Gönderim başarısız')
       }
 
       setMessage('Mesajınız başarıyla gönderildi!')
-      setFormData({ name: '', email: '', message: '' })
+      setFormData({ name: '', email: '', message: '', website: '' })
       
       setTimeout(() => {
         onClose()
       }, 2000)
     } catch (error) {
-      setMessage('Bir hata oluştu, lütfen tekrar deneyin.')
+      setMessage(error instanceof Error && error.message !== 'Gönderim başarısız'
+        ? error.message
+        : 'Bir hata oluştu, lütfen tekrar deneyin.')
     } finally {
       setSending(false)
     }
@@ -67,6 +71,16 @@ export default function ContactForm({ contactEmail, onClose }: ContactFormProps)
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              value={formData.website}
+              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+              className="absolute -left-[9999px] w-px h-px opacity-0"
+            />
             <div>
               <label className="block text-sm text-gray-400 mb-2">Adınız</label>
               <input

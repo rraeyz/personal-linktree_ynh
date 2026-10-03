@@ -7,13 +7,16 @@ import ActionButtons from '@/components/ActionButtons'
 import SocialEmbed from '@/components/SocialEmbed'
 import ThemeToggle from '@/components/ThemeToggle'
 import { redirect } from 'next/navigation'
+import { isSetupComplete } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
-export default async function Home() {
-  // Admin şifresi ayarlanmış mı kontrol et
-  const adminPassword = process.env.ADMIN_PASSWORD
-  if (!adminPassword || adminPassword === 'admin123' || adminPassword === 'change-this-password' || adminPassword === 'SETUP_REQUIRED' || adminPassword === 'auto-generated-on-first-setup') {
+export default async function Home({ searchParams }: { searchParams?: { link?: string } }) {
+  // /go/[slug] şifreli linkleri /?link=ID ile buraya yönlendirir, şifre penceresi otomatik açılır
+  const autoOpenLinkId = parseInt(searchParams?.link || '')
+
+  // Kurulum tamamlanmamışsa sihirbaza yönlendir
+  if (!(await isSetupComplete())) {
     redirect('/setup')
   }
 
@@ -140,13 +143,15 @@ export default async function Home() {
                         <LinkButton
                           key={link.id}
                           title={link.title}
-                          url={link.url}
+                          // Şifreli linklerin gerçek URL'si tarayıcıya gönderilmez; şifre doğrulanınca sunucudan alınır
+                          url={link.password ? '' : link.url}
                           icon={link.icon}
                           linkId={link.id}
                           type={link.type}
                           contactEmail={profile.contactEmail}
                           hasPassword={!!link.password}
                           passwordHint={link.passwordHint}
+                          autoOpen={link.id === autoOpenLinkId}
                         />
                       )
                     })}

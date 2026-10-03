@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (newPassword.length < 6) {
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
       return NextResponse.json(
-        { error: 'Yeni şifre en az 6 karakter olmalı' },
+        { error: 'Yeni şifre en az 8 karakter olmalı' },
         { status: 400 }
       )
     }
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Yeni şifreyi hash'le ve güncelle
-    const newPasswordHash = await bcrypt.hash(newPassword, 10)
+    const newPasswordHash = await bcrypt.hash(newPassword, 12)
 
     await prisma.admin.update({
       where: { id: admin.id },
