@@ -1,3 +1,5 @@
+import { FONT_CSS_VARS } from '@/lib/fonts'
+
 interface ThemeProviderProps {
   theme: {
     primaryColor: string
@@ -31,7 +33,23 @@ const speedMap: Record<string, string> = {
 const color = (value: string, fallback: string) =>
   /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback
 
-const fontName = (value: string) => value.replace(/[^a-zA-Z0-9 -]/g, '') || 'Inter'
+// Bilinen fontlar build'de self-host edilen CSS değişkenine çevrilir; bilinmeyen değer Inter'e düşer
+const fontStack = (value: string) => `${FONT_CSS_VARS[value] || FONT_CSS_VARS.Inter}, sans-serif`
+
+// Tema editöründeki "Buton Stili". gradient = varsayılan kart görünümü (önceki sürümlerle aynı).
+// `main .link-card` seçicisi Tailwind/global sınıflardan daha özgül olduğu için onları ezer.
+const BUTTON_STYLE_CSS: Record<string, string> = {
+  gradient: '',
+  solid: `
+main .link-card { background: var(--color-primary); border-color: transparent; }
+main .link-card, main .link-card .text-dynamic-text { color: #ffffff; }
+main .link-card .text-dynamic-primary, main .link-card .text-gray-500 { color: rgba(255, 255, 255, 0.85); }`,
+  outline: `
+main .link-card { background: transparent; border-width: 2px; border-color: var(--color-primary); box-shadow: none; }`,
+  glass: `
+main .link-card { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+html.light main .link-card { background: rgba(255, 255, 255, 0.55); border-color: rgba(0, 0, 0, 0.08); }`,
+}
 
 // Tema renkleri sunucuda <style> olarak basılır: sayfa ilk boyandığında doğru renkler hazırdır.
 // Koyu mod = admin panelinde seçilen tema. Açık mod (html.light) aynı primary/accent ile
@@ -67,8 +85,9 @@ html.light {
   }
 }
 body {
-  font-family: '${fontName(theme.fontFamily)}', var(--font-inter, sans-serif), sans-serif;
+  font-family: ${fontStack(theme.fontFamily)};
 }
+${BUTTON_STYLE_CSS[theme.buttonStyle] || ''}
 `
 
   return <style dangerouslySetInnerHTML={{ __html: css }} />

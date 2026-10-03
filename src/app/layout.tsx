@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { fontVariables } from '@/lib/fonts'
 import './globals.css'
 import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
 import { getBaseUrl } from '@/lib/url'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 async function getProfileData() {
   try {
@@ -71,7 +70,7 @@ export default function RootLayout({
 }) {
   return (
     // suppressHydrationWarning: açık/koyu mod sınıfı hydration'dan önce ThemeScript tarafından ekleniyor
-    <html lang="tr" className={inter.variable} suppressHydrationWarning>
+    <html lang="tr" className={fontVariables} suppressHydrationWarning>
       <body>{children}</body>
     </html>
   )

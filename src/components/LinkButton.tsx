@@ -108,9 +108,9 @@ export default function LinkButton({
           whileTap={{ scale: 0.98 }}
           className="group relative block w-full"
         >
-      <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-300" />
+      <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-dynamic blur-xl transition-opacity duration-300" />
       
-      <div className="relative flex items-center justify-between px-8 py-5 bg-dynamic-card hover:opacity-90 rounded-2xl border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
+      <div className="relative flex items-center justify-between px-8 py-5 link-card bg-dynamic-card hover:opacity-90 rounded-dynamic border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
         <div className="flex items-center gap-4">
           <div className="p-3 gradient-primary-accent opacity-25 group-hover:opacity-35 rounded-xl transition-all transition-dynamic">
             {isCustomIcon ? (
@@ -169,9 +169,9 @@ export default function LinkButton({
         whileTap={{ scale: 0.98 }}
         className="group relative block w-full"
       >
-        <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-300" />
+        <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-dynamic blur-xl transition-opacity duration-300" />
         
-        <div className="relative flex items-center justify-between px-8 py-5 bg-dynamic-card hover:opacity-90 rounded-2xl border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
+        <div className="relative flex items-center justify-between px-8 py-5 link-card bg-dynamic-card hover:opacity-90 rounded-dynamic border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg">
           <div className="flex items-center gap-4">
             <div className="p-3 gradient-primary-accent opacity-20 group-hover:opacity-30 rounded-xl transition-all transition-dynamic">
               {isCustomIcon ? (
