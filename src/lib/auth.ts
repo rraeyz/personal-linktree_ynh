@@ -53,11 +53,24 @@ export async function isAuthenticated(): Promise<boolean> {
   if (!token) return false
 
   const payload = verifyToken(token)
-  return !!payload
+  if (!payload) return false
+
+  // Token, verildiği andaki oturum sürümünü taşır; şifre değişince sürüm artar ve eski token reddedilir
+  const admin = await prisma.admin.findFirst({ select: { sessionVersion: true } })
+  if (!admin) return false
+  return (payload.sv ?? 0) === admin.sessionVersion
+}
+
+// Tüm oturumları (bu cihaz dahil) geçersiz kılar
+export async function revokeAllSessions() {
+  await prisma.admin.updateMany({ data: { sessionVersion: { increment: 1 } } })
+  const cookieStore = await cookies()
+  cookieStore.delete(AUTH_COOKIE)
 }
 
 export async function setAuthCookie(username: string) {
-  const token = signToken({ userId: 1, username })
+  const admin = await prisma.admin.findFirst({ select: { sessionVersion: true } })
+  const token = signToken({ userId: 1, username, sv: admin?.sessionVersion ?? 0 })
   const cookieStore = await cookies()
   // Secure bayrağı isteğin gerçek protokolüne göre: HTTPS (YunoHost/nginx) → secure,
   // doğrudan http://sunucu:3000 erişimi → secure değil (yoksa tarayıcı cookie'yi kaydetmez, giriş yapılamaz)

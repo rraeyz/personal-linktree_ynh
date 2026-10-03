@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isSetupComplete, setAuthCookie, verifyAdminCredentials } from '@/lib/auth'
-import { getClientIp, isRateLimited } from '@/lib/security'
+import { getClientIp, isRateLimited, isRateLimitExceeded } from '@/lib/security'
 
 export async function POST(request: NextRequest) {
   try {
-    // Brute-force koruması: IP başına 15 dakikada 10 deneme
-    if (isRateLimited(`login:${getClientIp(request.headers)}`, 10, 15 * 60 * 1000)) {
+    // Brute-force koruması: IP başına 15 dakikada 10 HATALI deneme (başarılı girişler sayılmaz)
+    const rateKey = `login:${getClientIp(request.headers)}`
+    if (isRateLimitExceeded(rateKey, 10)) {
       return NextResponse.json(
         { error: 'Çok fazla deneme yapıldı. Lütfen 15 dakika sonra tekrar deneyin.' },
         { status: 429 }
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!(await verifyAdminCredentials(username, password))) {
+      isRateLimited(rateKey, 10, 15 * 60 * 1000)
       return NextResponse.json(
         { error: 'Kullanıcı adı veya şifre hatalı' },
         { status: 401 }

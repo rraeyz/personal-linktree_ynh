@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { isAuthenticated } from '@/lib/auth'
+import { isAuthenticated, revokeAllSessions } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
@@ -52,7 +52,10 @@ export async function POST(request: NextRequest) {
       data: { passwordHash: newPasswordHash },
     })
 
-    return NextResponse.json({ message: 'Şifre başarıyla değiştirildi' })
+    // Şifre değişti: eski şifreyle açılmış tüm oturumlar (bu cihaz dahil) kapanır
+    await revokeAllSessions()
+
+    return NextResponse.json({ message: 'Şifre değiştirildi. Tüm oturumlar kapatıldı, yeni şifrenizle giriş yapın.' })
   } catch (error) {
     console.error('Password change error:', error)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

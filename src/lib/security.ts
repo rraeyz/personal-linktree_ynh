@@ -51,6 +51,12 @@ export function isRateLimited(key: string, limit: number, windowMs: number): boo
   return bucket.count > limit
 }
 
+// Sayaç artırmadan sınırın aşılıp aşılmadığına bakar (ör. sadece hatalı girişleri saymak için)
+export function isRateLimitExceeded(key: string, limit: number): boolean {
+  const bucket = buckets.get(key)
+  return !!bucket && bucket.resetAt > Date.now() && bucket.count >= limit
+}
+
 export function escapeHtml(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')

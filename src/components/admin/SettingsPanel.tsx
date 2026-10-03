@@ -102,7 +102,7 @@ export default function SettingsPanel() {
       const data = await response.json()
 
       if (response.ok) {
-        setMessage('Şifre başarıyla değiştirildi!')
+        setMessage('Şifre başarıyla değiştirildi! Tüm oturumlar kapatıldı, yeni şifrenizle giriş yapın.')
         setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
@@ -356,6 +356,24 @@ export default function SettingsPanel() {
             <span>{saving ? 'Kaydediliyor...' : 'Şifreyi Değiştir'}</span>
           </button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-gray-800">
+          <h3 className="text-sm font-medium text-gray-300 mb-1">Tüm cihazlardan çıkış yap</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Başka bir bilgisayarda veya telefonda açık kalmış oturumlar dahil tüm oturumları kapatır.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!confirm('Tüm cihazlardaki oturumlar kapatılacak. Devam edilsin mi?')) return
+              await fetch('/api/auth/logout-all', { method: 'POST' })
+              router.push('/admin/login')
+            }}
+            className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 transition-colors text-sm"
+          >
+            Tüm oturumları kapat
+          </button>
+        </div>
       </div>
 
       {/* Import/Export Settings */}

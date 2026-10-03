@@ -160,6 +160,8 @@ model Admin {
   id           Int      @id @default(1)
   username     String   @unique @default("admin")
   passwordHash String
+  // Şifre değişince / "tüm cihazlardan çıkış" yapılınca artar; eski oturum token'ları geçersiz olur
+  sessionVersion Int    @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
