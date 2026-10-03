@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+jobs:
+  check:
+    name: Typecheck, lint, build
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./prisma/ci.db
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npx next lint
+      - run: npx next build
+
+  docker:
+    name: Docker imajı + duman testi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: İmajı derle
+        run: docker build -t linktree-ci .
+
+      - name: Container'ı başlat
+        run: |
+          mkdir -p "$RUNNER_TEMP/data/prisma" "$RUNNER_TEMP/data/uploads"
+          touch "$RUNNER_TEMP/data/.env"
+          docker run -d --name linktree -p 3000:3000 \
+            -v "$RUNNER_TEMP/data/prisma:/app/prisma" \
+            -v "$RUNNER_TEMP/data/uploads:/app/public/uploads" \
+            -v "$RUNNER_TEMP/data/.env:/app/.env" \
+            linktree-ci
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000/api/health && break
+            sleep 2
+          done
+          docker logs linktree
+
+      - name: Duman testi (kurulum, giriş, görsel yükleme)
+        run: |
+          set -e
+          B=http://localhost:3000; J='content-type: application/json'
+          test "$(curl -s $B/api/setup)" = '{"setupRequired":true,"step":"initial"}'
+          curl -sf -c cj -X POST $B/api/setup -H "$J" \
+            -d '{"step":"initial","data":{"adminUsername":"admin","adminPassword":"ci-password-123","baseUrl":"http://localhost:3000"}}'
+          curl -sf -b cj -X POST $B/api/setup -H "$J" -d '{"step":"database","data":{"name":"CI"}}'
+          test "$(curl -s -o /dev/null -w '%{http_code}' $B/)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST $B/api/setup -H "$J" -d '{"step":"initial","data":{}}')" = 403
+          curl -sf -c cj2 -X POST $B/api/auth/login -H "$J" -d '{"username":"admin","password":"ci-password-123"}'
+          # sharp'ın Alpine (musl) üzerinde çalıştığını doğrula
+          docker exec linktree node -e "require('sharp')({create:{width:800,height:600,channels:3,background:'#336699'}}).jpeg().toFile('/tmp/t.jpg').then(()=>console.log('sharp ok'))"
+          docker cp linktree:/tmp/t.jpg t.jpg
+          URL=$(curl -sf -b cj2 -F kind=avatar -F file=@t.jpg $B/api/admin/upload | python3 -c 'import json,sys;print(json.load(sys.stdin)["url"])')
+          test "$(curl -s -o /dev/null -w '%{http_code}' $B$URL)" = 200
+          echo "Duman testi başarılı"
+
+      - name: Container logları
+        if: always()
+        run: docker logs linktree || true

@@ -13,12 +13,28 @@
 - Gece/gündüz modu: admin temasındaki renkler korunuyor, sayfa yenilenince yanıp sönme yok, modal/formlar açık moda uyuyor.
 - Link düzenlerken yeni şifre hash'leniyor, tarih alanları doğru kaydediliyor.
 - `/go/slug` şifreli linkte şifre penceresi otomatik açılıyor.
+- Paylaş butonu `https://yoursite.com` yerine gerçek sayfa adresini paylaşıyor.
+- Sosyal medya önizlemelerinde (og:image) görsel çıkmıyordu; adres artık doğru domainden üretiliyor.
+- E-postalardaki sosyal ikonlar Gmail'de görünüyor (barındırılan PNG); gönderen adresi boş kalmıyor.
+- Doğrudan `http://sunucu:3000` erişiminde admin girişi yapılamıyordu.
+- `default-avatar.jpg` aslında SVG'ydi; gerçek JPEG ile değiştirildi.
 - Temiz kurulumda `react-is` eksikliğinden kaynaklanan build hatası giderildi.
 - YunoHost restore scripti düzeltildi; upgrade kesintisiz build yapıyor ve install ile aynı kaynağı kullanıyor.
 
+### ✨ Yeni Özellikler
+- **Görsel yükleme:** profil fotoğrafı, favicon, sosyal medya görseli ve arka plan sunucuya yükleniyor; otomatik boyutlandırma, EXIF/konum bilgisi silme.
+- **Profil görüntülenme analitiği:** görüntülenme, tekil ziyaretçi, etkileşim oranı, UTM kampanya tablosu.
+- **Bülten:** kişiye özel "abonelikten çık" sayfası ve Gmail/Outlook tek tıkla çıkış.
+- **Rehbere Ekle (vCard):** isteğe bağlı, varsayılan kapalı.
+- `robots.txt` ve `sitemap.xml`.
+- Upgrade'lerde veritabanı şeması otomatik güncelleniyor (`db-migrate.js`, öncesinde yedek alınır).
+
 ### ⚡ İyileştirmeler
-- Ana sayfa JavaScript boyutu 2.49 MB → 144 kB (ikonlar sunucuda çiziliyor).
-- Analytics'te UTM parametreleri ve gerçek referrer kaydediliyor.
+- Next.js 14.1.0 → 14.2.35.
+- Ana sayfa JavaScript boyutu 2.49 MB → 146 kB (ikonlar sunucuda çiziliyor).
+- Analytics'te UTM parametreleri ve gerçek referrer kaydediliyor; botlar sayılmıyor.
+- Güvenlik başlıkları, CSRF için Origin kontrolü, açık görsel proxy'si kapatıldı.
+- Docker build lock dosyasıyla (`npm ci`) yapılıyor; GitHub Actions CI (typecheck, lint, build, Docker duman testi).
 - Docker healthcheck için veri döndürmeyen `/api/health` endpoint'i.
 
 ---
