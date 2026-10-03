@@ -1,376 +1,112 @@
-# 🏠 Yunohost Panel Kurulumu
+# YunoHost Kurulumu
 
-## 📦 Yunohost App Package Hazırlama
+Uygulama YunoHost üzerinde Docker container olarak çalışır; nginx, SSL, yedekleme ve güncelleme YunoHost tarafından yönetilir.
 
-### 1. Projeyi GitHub'a Yükle (Gerekli)
+**Gereksinimler:** YunoHost 11.3 veya üstü (12.x önerilir), ~1 GB RAM (build sırasında), ~500 MB disk. Docker kurulum sırasında otomatik kurulur.
 
-Yunohost, uygulamaları GitHub'dan çeker. Projenizi bir GitHub repo'suna yükleyin:
+> **Kaynak kod nereden geliyor?** Kurulum, güncelleme ve geri yükleme script'leri uygulama kodunu
+> `scripts/_common.sh` içindeki `source_repo` / `source_branch` adresinden çeker (şu an deneme reposunun `main` branch'i).
+> Yani bir değişikliği denemek için önce `main`'e alınmış olması gerekir.
 
-```bash
-cd ~/Masaüstü/projeler/personal-linktree
+## 1. Test domaininde kurulum
 
-# Git repo başlat (eğer yoksa)
-git init
-git add .
-git commit -m "Initial commit"
-
-# GitHub'a push et
-git remote add origin https://github.com/rraeyz/personal-linktree_ynh.git
-git branch -M main
-git push -u origin main
-```
-
-### 2. Yunohost Package Hazırlama
-
-Yunohost app package'ı ayrı bir repo olmalı:
+Önce ayrı bir alt domainde deneyin. Sorun çıkarsa ana sitenize dokunmamış olursunuz.
 
 ```bash
-# Yeni bir dizin oluştur
-mkdir ~/personal-linktree_ynh
-cd ~/personal-linktree_ynh
+# Domaini ekleyin (DNS kaydı sunucunuzu göstermeli) ve SSL sertifikası alın
+sudo yunohost domain add test.ornek.com
+sudo yunohost domain cert install test.ornek.com
 
-# Yunohost klasöründeki dosyaları kopyala
-cp -r ~/Masaüstü/projeler/personal-linktree/yunohost/* .
-
-# manifest.toml'de GitHub URL'ini güncelle
-nano manifest.toml
-# "code" satırını kendi GitHub repo URL'inle değiştir
+# Uygulamayı kurun
+sudo yunohost app install https://github.com/rraeyz/personel-linktree-deneme_ynh \
+  --args "domain=test.ornek.com&path=/&init_main_permission=visitors"
 ```
 
-**manifest.toml düzenlenmesi gereken satırlar:**
-```toml
-[upstream]
-code = "https://github.com/rraeyz/personal-linktree_ynh"
-```
+Kurulum Docker imajını derlediği için birkaç dakika sürer. Bittiğinde:
 
-### 3. sources.toml Oluştur
+1. `https://test.ornek.com/setup` adresini açın. Admin kullanıcı adını ve şifresini belirleyin, profilinizi oluşturun.
+2. Panel `https://test.ornek.com/admin` adresindedir.
+3. Ayarlar → E-posta (SMTP) bölümünü doldurursanız iletişim formu ve bülten çalışır.
 
-Yunohost'un projeyi nereden çekeceğini belirt:
+> Yol olarak mutlaka `/` kullanın. `ornek.com/linktree` gibi alt yollara kurulum henüz desteklenmiyor.
+
+## 2. Ana domaine taşıma
+
+Test domaininde her şey yolundaysa uygulamayı **verileriyle birlikte** ana domaine taşıyın. Yeniden kurulum gerekmez:
 
 ```bash
-cd ~/personal-linktree_ynh
-mkdir conf
-nano conf/sources.toml
+sudo yunohost app change-url personal_linktree -d ornek.com -p /
 ```
 
-**conf/sources.toml içeriği:**
-```toml
-[main]
-url = "https://github.com/rraeyz/personal-linktree_ynh/archive/refs/heads/main.tar.gz"
-sha256 = "SHA256_HASH_BURAYA"
-format = "tar.gz"
-in_subdir = true
-```
+Bu komut nginx ayarını yeni domaine taşır ve container'ı yeni adresle yeniden başlatır. Veritabanı, yüklenen görseller ve ayarlar aynen kalır. İşlem başarısız olursa YunoHost eski ayarı geri yükler.
 
-SHA256 hash almak için:
-```bash
-curl -sL "https://github.com/rraeyz/personal-linktree_ynh/archive/refs/heads/main.tar.gz" | sha256sum
-```
+- Ana domainin `/` yolunda başka bir uygulama varsa önce onu taşımanız veya kaldırmanız gerekir.
+- Taşıdıktan sonra test domainini isterseniz `sudo yunohost domain remove test.ornek.com` ile kaldırabilirsiniz.
+- Daha önce paylaştığınız `test.ornek.com` linkleri artık çalışmaz. QR kodları da yeni domainle yeniden oluşturun.
 
-### 4. Package'ı GitHub'a Yükle
+## 3. Güncelleme
 
 ```bash
-cd ~/personal-linktree_ynh
-git init
-git add .
-git commit -m "Initial Yunohost package"
-git remote add origin https://github.com/rraeyz/personal-linktree_ynh_ynh.git
-git branch -M main
-git push -u origin main
+sudo yunohost app upgrade personal_linktree \
+  -u https://github.com/rraeyz/personel-linktree-deneme_ynh --force
 ```
 
----
+- Yeni imaj derlenirken eski sürüm çalışmaya devam eder, kesinti yalnızca container değişirken birkaç saniyedir.
+- Açılışta veritabanı şeması otomatik güncellenir (`db-migrate.js`). Değişiklikten önce `prisma/dev.db.before-migrate-<tarih>` adıyla yedek alınır.
+- `--force`, sürüm numarası değişmediğinde de güncellemeyi zorlar.
 
-## 🚀 Yunohost Panelden Kurulum
-
-### Yöntem 1: Custom App (Önerilen - Basit)
-
-1. **Yunohost admin paneline giriş yap**
-   - https://your-yunohost-domain.com/yunohost/admin
-
-2. **Applications menüsüne git**
-
-3. **"Install custom app" butonuna tık**
-
-4. **GitHub URL'ini gir:**
-   ```
-   https://github.com/rraeyz/personal-linktree_ynh_ynh
-   ```
-
-5. **Kurulum formunu doldur:**
-   - **Domain**: Linktree'nizin çalışacağı domain (örn: example.com)
-   - **Path**: URL yolu (varsayılan: /linktree)
-   - **Public access**: Herkese açık mı olacak (varsayılan: Evet - Visitors)
-
-6. **Install butonuna tık**
-
-7. **Kurulum tamamlandıktan sonra:**
-   - Tarayıcınızda `https://your-domain.com/linktree/setup` adresine gidin
-   - Setup wizard ile admin hesabı oluşturun
-   - Profil bilgilerinizi ve bağlantılarınızı ekleyin
-
-### Yöntem 2: SSH ile Özel Repo Kurulumu (Özel/Private Repo için)
-
-Eğer repo'nuz private ise:
+## 4. Yedekleme ve geri yükleme
 
 ```bash
-# Sunucuya bağlan
-ssh admin@your-yunohost-domain.com
+# YunoHost yedeği (veritabanı + yüklenen görseller + ayarlar)
+sudo yunohost backup create --apps personal_linktree
 
-# Root'a geç
-sudo -i
-
-# SSH deploy key kullanarak kur
-yunohost app install git@github.com-personal-linktree:rraeyz/personal-linktree_ynh.git \
-  -a "domain=yourdomain.com&path=/linktree"
-
-# Kurulum tamamlandıktan sonra setup wizard'a git:
-# https://yourdomain.com/linktree/setup
+# Geri yükleme (önce uygulamayı kaldırmanız gerekiyorsa: sudo yunohost app remove personal_linktree)
+sudo yunohost backup list
+sudo yunohost backup restore <yedek-adı> --apps personal_linktree
 ```
 
-**Not:** Bu yöntem, daha önce oluşturduğumuz SSH deploy key'i kullanır. Repository private olsa bile erişim sağlar.
+Ayrıca her gün otomatik bir veritabanı yedeği alınır: `/home/yunohost.app/personal_linktree/backup/db-YYYYMMDD.db` (son 7 gün). Yedekler, çalışan veritabanından SQLite'ın çevrimiçi yedekleme özelliğiyle alınır, yani yazma sırasında da tutarlıdır.
 
----
+Admin paneli → Ayarlar → "Tüm Ayarları Yedekle" ise profil, tema ve linkleri JSON olarak indirir. Başka bir kuruluma taşımak için kullanılabilir. Analitik, aboneler ve yüklenen görseller bu dosyada yoktur.
 
-## 📋 Basitleştirilmiş Kurulum (Hızlı Test)
+## Veriler nerede?
 
-Eğer GitHub'a yüklemek istemiyorsan, local kurulum yapabilirsin:
+| Yol | İçerik |
+|---|---|
+| `/home/yunohost.app/personal_linktree/prisma/dev.db` | Veritabanı (profil, linkler, analitik, aboneler, admin) |
+| `/home/yunohost.app/personal_linktree/uploads/` | Yüklenen görseller |
+| `/home/yunohost.app/personal_linktree/.env` | JWT anahtarı (kurulum sihirbazı oluşturur) |
+| `/home/yunohost.app/personal_linktree/backup/` | Günlük otomatik veritabanı yedekleri |
+| `/opt/yunohost/personal_linktree/` | Uygulama kodu ve `docker-compose.yml` (güncellemede yeniden oluşturulur) |
 
-### 1. Projeyi Sunucuya Kopyala
+## Sorun giderme
 
 ```bash
-# Local'den sunucuya kopyala
-scp -r ~/Masaüstü/projeler/personal-linktree admin@your-server:/tmp/
+# Container durumu ve logları
+sudo docker ps --filter name=personal_linktree
+sudo docker logs --tail 100 personal_linktree
 
-# Sunucuya bağlan
-ssh admin@your-server
-sudo -i
+# Uygulama yanıt veriyor mu?
+curl -s http://127.0.0.1:$(sudo yunohost app setting personal_linktree port)/api/health
 
-# Kurulum dizinine taşı
-mv /tmp/personal-linktree /opt/yunohost/apps/personal_linktree
+# Container'ı yeniden başlat
+cd /opt/yunohost/personal_linktree && sudo docker-compose restart
 ```
 
-### 2. Manuel Docker Kurulumu
+- **Admin şifresini unuttum:** Şifre veritabanında hash'li tutulur. Sıfırlamak için `Admin` tablosundaki kaydı silip `/setup` sihirbazını yeniden çalıştırın:
+  ```bash
+  sudo docker exec personal_linktree node -e "new (require('better-sqlite3'))('/app/prisma/dev.db').exec('DELETE FROM Admin')"
+  ```
+  Ardından `https://<domain>/setup` açın. Linkler, analitik ve aboneler korunur. Sihirbazın profil adımında boş bıraktığınız alanlar değişmez.
+  Çok eski bir kurulumdan geliyorsanız ve `/home/yunohost.app/personal_linktree/.env` içinde `ADMIN_PASSWORD=` satırı varsa, onu da silip `sudo docker restart personal_linktree` çalıştırın.
+- **Kurulumdan sonra sayfa açılmıyor:** İmaj derlemesi uzun sürmüş olabilir. `docker logs` çıktısında `Ready` satırını bekleyin.
+- **E-posta gitmiyor:** Gmail için normal şifre değil "uygulama şifresi" gerekir (port 587, Secure kapalı).
+
+## Ana repoya geçiş
+
+Deneme reposunda her şey çalıştığında ana repoya geçmek için `scripts/_common.sh` içindeki `source_repo` adresini ana repo olarak değiştirin. Kurulu uygulamayı da ana repo adresiyle güncelleyin:
 
 ```bash
-cd /opt/yunohost/apps/personal_linktree
-
-# Docker kur (yoksa)
-curl -fsSL https://get.docker.com | bash
-
-# .env oluştur
-cat > .env << 'EOF'
-DATABASE_URL="file:/app/prisma/dev.db"
-JWT_SECRET="BURAYA_RASTGELE_32_KARAKTER"
-ADMIN_PASSWORD="güçlü-şifreniz"
-NEXT_PUBLIC_BASE_URL="https://linktree.yourdomain.com"
-PORT=3000
-NODE_ENV=production
-EOF
-
-# Başlat
-docker-compose up -d --build
-
-# Database oluştur
-sleep 30
-docker-compose exec app npx prisma db push
+sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personal-linktree_ynh --force
 ```
-
-### 3. Nginx Yapılandır
-
-```bash
-# Nginx config oluştur
-cat > /etc/nginx/conf.d/linktree.conf << 'EOF'
-server {
-    listen 80;
-    server_name linktree.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        client_max_body_size 50M;
-    }
-}
-EOF
-
-# Nginx reload
-nginx -t
-systemctl reload nginx
-
-# SSL ekle
-yunohost domain cert install linktree.yourdomain.com
-```
-
----
-
-## 🔧 Kurulum Sonrası
-
-### Domain DNS Ayarları
-
-Yunohost panelden:
-1. **Domains** → Kendi domain'in
-2. **DNS** sekmesi
-3. A kaydı ekle: `linktree.yourdomain.com` → Sunucu IP'si
-4. DNS'in yayılmasını bekle (15-60 dakika)
-
-### İlk Giriş
-
-1. `https://linktree.yourdomain.com/admin/login` aç
-2. Belirlediğin şifreyle giriş yap
-3. Profil ayarlarını düzenle
-4. İlk linki ekle!
-
----
-
-## 📊 Yönetim Komutları
-
-### Yunohost CLI ile
-
-```bash
-# App durumu
-yunohost app info personal_linktree
-
-# App logları
-yunohost app log personal_linktree
-
-# App yeniden başlat
-yunohost app restart personal_linktree
-
-# App güncelle
-yunohost app upgrade personal_linktree
-
-# App kaldır
-yunohost app remove personal_linktree
-
-# Yedek al
-yunohost backup create --apps personal_linktree
-
-# Yedek geri yükle
-yunohost backup restore BACKUP_NAME
-```
-
-### Docker Komutları
-
-```bash
-cd /opt/yunohost/apps/personal_linktree
-
-# Loglar
-docker-compose logs -f
-
-# Yeniden başlat
-docker-compose restart
-
-# Durdur
-docker-compose down
-
-# Güncelleme
-docker-compose up -d --build
-```
-
----
-
-## 🐛 Sorun Giderme
-
-### App kurulmadı
-
-```bash
-# Yunohost loglarını kontrol et
-tail -f /var/log/yunohost/yunohost.log
-
-# Script hatalarını kontrol et
-journalctl -u yunohost-api -f
-```
-
-### Docker çalışmıyor
-
-```bash
-# Docker durumunu kontrol et
-systemctl status docker
-
-# Docker loglarını kontrol et
-docker-compose logs app
-
-# Container'a bağlan
-docker-compose exec app sh
-```
-
-### Database hatası
-
-```bash
-# Database'i sıfırla
-docker-compose exec app npx prisma db push --accept-data-loss
-```
-
-### Port çakışması
-
-```bash
-# .env'de PORT değiştir
-nano /opt/yunohost/apps/personal_linktree/.env
-
-# docker-compose.yml'de de değiştir
-nano /opt/yunohost/apps/personal_linktree/docker-compose.yml
-
-# Restart
-docker-compose down && docker-compose up -d
-```
-
----
-
-## 📦 Paket Yapısı
-
-```
-personal-linktree_ynh/
-├── manifest.toml           # App metadata
-├── scripts/
-│   ├── install            # Kurulum scripti
-│   ├── remove             # Kaldırma scripti
-│   ├── upgrade            # Güncelleme scripti
-│   ├── backup             # Yedekleme scripti
-│   └── restore            # Geri yükleme scripti
-└── conf/
-    ├── nginx.conf         # Nginx template
-    ├── systemd.service    # Systemd service
-    ├── docker-compose.yml # Docker Compose template
-    └── sources.toml       # Kaynak URL'leri
-```
-
----
-
-## ✅ Production Checklist
-
-- [ ] GitHub repo oluşturuldu ve code push'landı
-- [ ] Yunohost package repo oluşturuldu
-- [ ] sources.toml'de doğru URL ve hash var
-- [ ] manifest.toml'de doğru bilgiler var
-- [ ] DNS A kaydı eklendi
-- [ ] Yunohost'tan kurulum yapıldı
-- [ ] SSL sertifikası otomatik kuruldu
-- [ ] İlk giriş yapıldı ve test edildi
-- [ ] Yedekleme sistemi kuruldu
-
----
-
-## 🎯 Hızlı Özet
-
-**En Basit Yol (Test için):**
-1. Docker ve Docker Compose kur
-2. Projeyi `/opt/yunohost/apps/personal_linktree` kopyala
-3. `.env` oluştur
-4. `docker-compose up -d --build` çalıştır
-5. Nginx reverse proxy ekle
-6. SSL kur
-
-**Proper Yunohost Yolu:**
-1. Projeyi GitHub'a yükle
-2. Yunohost package'ı GitHub'a yükle
-3. Yunohost panel → Custom App Install
-4. GitHub URL'ini gir, kurulum formunu doldur
-5. Kurulumu tamamla
-
-Her iki yol da çalışır! İlki daha hızlı test için, ikincisi production için önerilir.

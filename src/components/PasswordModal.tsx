@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaLock, FaTimes, FaUnlock, FaInfoCircle } from 'react-icons/fa'
 
@@ -24,6 +25,10 @@ export default function PasswordModal({
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false)
+
+  // Modal body'ye portal ile basılır; animasyonlu (transform'lu) üst öğeler fixed konumu bozmasın
+  useEffect(() => setMounted(true), [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,7 +58,9 @@ export default function PasswordModal({
     }
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -72,7 +79,7 @@ export default function PasswordModal({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-dark-card border border-gray-700 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+              className="bg-dynamic-card border border-dynamic rounded-2xl p-6 max-w-md w-full shadow-2xl"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
@@ -81,13 +88,13 @@ export default function PasswordModal({
                     <FaLock className="w-5 h-5 text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">Korumalı Link</h3>
+                    <h3 className="text-lg font-bold text-dynamic-text">Korumalı Link</h3>
                     <p className="text-sm text-gray-400">{linkTitle}</p>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 hover-dynamic rounded-lg transition-colors"
                 >
                   <FaTimes className="w-4 h-4 text-gray-400" />
                 </button>
@@ -99,7 +106,7 @@ export default function PasswordModal({
                   <FaInfoCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-xs font-medium text-blue-400 mb-1">İpucu:</p>
-                    <p className="text-sm text-gray-300">{passwordHint}</p>
+                    <p className="text-sm text-dynamic-text opacity-80">{passwordHint}</p>
                   </div>
                 </div>
               )}
@@ -107,7 +114,7 @@ export default function PasswordModal({
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-dynamic-text opacity-80 mb-2">
                     Şifre
                   </label>
                   <input
@@ -117,7 +124,7 @@ export default function PasswordModal({
                       setPassword(e.target.value)
                       setError('')
                     }}
-                    className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full px-4 py-3 bg-dynamic-input border border-dynamic rounded-xl text-dynamic-text focus:outline-none focus:border-dynamic-primary transition-colors"
                     placeholder="Şifreyi girin"
                     autoFocus
                   />
@@ -133,7 +140,7 @@ export default function PasswordModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                    className="flex-1 px-4 py-3 bg-dynamic-input border border-dynamic hover-dynamic text-dynamic-text rounded-xl transition-colors"
                   >
                     İptal
                   </button>
@@ -157,6 +164,7 @@ export default function PasswordModal({
           </div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

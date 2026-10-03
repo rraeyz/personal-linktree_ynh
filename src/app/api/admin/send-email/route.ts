@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import nodemailer from 'nodemailer'
 import { generateEmailHTML, textToHTML } from '@/lib/emailTemplate'
+import { getBaseUrl } from '@/lib/url'
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,9 +74,10 @@ export async function POST(request: NextRequest) {
     })
 
     // Gönderen email formatı
-    const fromEmail = profile.smtpFromName 
-      ? `"${profile.smtpFromName}" <${profile.smtpFrom}>` 
-      : profile.smtpFrom
+    const senderAddress = profile.smtpFrom || profile.smtpUser
+    const fromEmail = profile.smtpFromName
+      ? `"${profile.smtpFromName}" <${senderAddress}>`
+      : senderAddress
 
     // HTML email template oluştur
     const htmlContent = generateEmailHTML({
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
         instagram: profile.instagramUrl,
         github: profile.githubUrl,
       },
+      baseUrl: getBaseUrl(request.headers),
     })
 
     // Email gönder

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { fontVariables } from '@/lib/fonts'
 import './globals.css'
 import { prisma } from '@/lib/prisma'
+import { headers } from 'next/headers'
+import { getBaseUrl } from '@/lib/url'
 
-const inter = Inter({ subsets: ['latin'] })
 
 async function getProfileData() {
   try {
@@ -14,16 +15,28 @@ async function getProfileData() {
   }
 }
 
+function safeBaseUrl(): URL {
+  try {
+    return new URL(getBaseUrl(headers()))
+  } catch {
+    // Bozuk Host başlığı sayfayı çökertmesin
+    return new URL('http://localhost:3000')
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfileData()
   
   const title = profile?.pageTitle || profile?.name || 'Personal Link Tree'
   const description = profile?.pageDescription || profile?.bio || 'Modern and minimalist personal link tree'
-  const ogImage = profile?.ogImageUrl || profile?.imageUrl || '/og-image.png'
-  const favicon = profile?.faviconUrl || '/favicon.ico'
+  // data: URI (eski base64 yüklemeler) sosyal medya önizlemelerinde çalışmaz; o durumda varsayılan avatar kullanılır
+  const ogCandidate = profile?.ogImageUrl || profile?.imageUrl || '/default-avatar.jpg'
+  const ogImage = ogCandidate.startsWith('data:') ? '/default-avatar.jpg' : ogCandidate
+  const favicon = profile?.faviconUrl || '/favicon.png'
   
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+    // Göreli görsel yolları (/media/...) bu adrese göre tam URL'ye çevrilir; WhatsApp/Twitter önizlemesi için gerekli
+    metadataBase: safeBaseUrl(),
     title,
     description,
     icons: {
@@ -56,8 +69,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="tr">
-      <body className={inter.className}>{children}</body>
+    // suppressHydrationWarning: açık/koyu mod sınıfı hydration'dan önce ThemeScript tarafından ekleniyor
+    <html lang="tr" className={fontVariables} suppressHydrationWarning>
+      <body>{children}</body>
     </html>
   )
 }

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { isAuthenticated } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import DashboardClient from '@/components/admin/DashboardClient'
+import { toClientProfile } from '@/lib/profile'
 
 export default async function AdminDashboardPage() {
   const authenticated = await isAuthenticated()
@@ -17,7 +18,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <DashboardClient 
-      initialProfile={profile} 
+      initialProfile={toClientProfile(profile)} 
       initialLinks={links} 
     />
   )

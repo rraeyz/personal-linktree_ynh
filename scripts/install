@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -30,12 +31,9 @@ mkdir -p "$install_dir"
 mkdir -p "$data_dir/prisma"
 mkdir -p "$data_dir/uploads"
 
-# Kaynak dosyaları GitHub'dan çek (deneme reposu, HTTPS ile)
+# Kaynak dosyaları GitHub'dan çek (repo adresi scripts/_common.sh içinde)
 ynh_script_progression --message="Cloning from GitHub..." --weight=2
-git clone https://github.com/rraeyz/personel-linktree-deneme_ynh.git "$install_dir"
-
-# Git klasörünü temizle
-rm -rf "$install_dir/.git"
+fetch_app_source
 
 # Prisma schema'yı data dizinine kopyala (volume için)
 cp "$install_dir/prisma/schema.prisma" "$data_dir/prisma/"
@@ -60,8 +58,8 @@ cd "$install_dir"
 docker-compose build --no-cache
 docker-compose up -d
 
-# Container'ın başlamasını bekle (CMD'de prisma db push otomatik çalışacak)
-sleep 30
+# Container'ın ayağa kalkmasını bekle
+wait_for_app
 
 #=================================================
 # CONFIGURE NGINX
@@ -97,15 +95,7 @@ ynh_use_logrotate
 #=================================================
 ynh_script_progression --message="Configuring backup..." --weight=1
 
-# Günlük yedekleme için cron job
-cat > "/etc/cron.daily/$app-backup" << EOF
-#!/bin/bash
-docker exec ${app} cat /app/prisma/dev.db > $data_dir/backup/db-\$(date +%Y%m%d).db
-find $data_dir/backup -name "db-*.db" -mtime +7 -delete
-EOF
-chmod +x "/etc/cron.daily/$app-backup"
-
-mkdir -p "$data_dir/backup"
+setup_backup_cron
 
 #=================================================
 # END OF SCRIPT

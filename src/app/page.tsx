@@ -6,14 +6,28 @@ import ThemeProvider from '@/components/ThemeProvider'
 import ActionButtons from '@/components/ActionButtons'
 import SocialEmbed from '@/components/SocialEmbed'
 import ThemeToggle from '@/components/ThemeToggle'
+import ThemeScript from '@/components/ThemeScript'
+import ViewTracker from '@/components/ViewTracker'
+import SocialIcons from '@/components/SocialIcons'
+import TextBlock from '@/components/blocks/TextBlock'
+import GalleryBlock from '@/components/blocks/GalleryBlock'
+import SpotifyBlock from '@/components/blocks/SpotifyBlock'
+import CountdownBlock from '@/components/blocks/CountdownBlock'
+import PortfolioCard from '@/components/blocks/PortfolioCard'
+import { parseImages, spotifyEmbedUrl } from '@/lib/links'
+import { renderLinkIcon } from '@/lib/linkIcon'
+import { hasInlineImages, migrateInlineImages } from '@/lib/uploads'
 import { redirect } from 'next/navigation'
+import { isSetupComplete } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
-export default async function Home() {
-  // Admin şifresi ayarlanmış mı kontrol et
-  const adminPassword = process.env.ADMIN_PASSWORD
-  if (!adminPassword || adminPassword === 'admin123' || adminPassword === 'change-this-password' || adminPassword === 'SETUP_REQUIRED' || adminPassword === 'auto-generated-on-first-setup') {
+export default async function Home({ searchParams }: { searchParams?: { link?: string } }) {
+  // /go/[slug] şifreli linkleri /?link=ID ile buraya yönlendirir, şifre penceresi otomatik açılır
+  const autoOpenLinkId = parseInt(searchParams?.link || '')
+
+  // Kurulum tamamlanmamışsa sihirbaza yönlendir
+  if (!(await isSetupComplete())) {
     redirect('/setup')
   }
 
@@ -29,6 +43,18 @@ export default async function Home() {
   // İlk kez çalışıyorsa setup'a yönlendir
   if (!profile) {
     redirect('/setup')
+  }
+
+  // Eski sürümlerden kalan base64 görselleri bir kerelik dosyaya taşı
+  if (hasInlineImages(profile)) {
+    const currentProfile = profile
+    const updates = await migrateInlineImages(currentProfile, (data) =>
+      prisma.profile.update({ where: { id: currentProfile.id }, data })
+    ).catch((error) => {
+      console.error('Base64 görsel taşıma hatası:', error)
+      return {}
+    })
+    profile = { ...profile, ...updates }
   }
 
   // Aktif linkleri sıralı şekilde al ve scheduled links'i filtrele
@@ -63,8 +89,78 @@ export default async function Home() {
 
   const categories = Object.keys(linksByCategory).sort()
 
+  const isGrid = profile.layout === 'grid'
+
+  // Bento ızgarada tam genişlik kaplayan bloklar (içerik dar kutuya sığmaz)
+  const isWideBlock = (link: any) =>
+    link.featured || ['contact', 'text', 'gallery', 'spotify', 'countdown'].includes(link.type) || link.type?.startsWith('embed-')
+
+  const renderBlock = (link: any) => {
+    switch (link.type) {
+      case 'text':
+        return <TextBlock title={link.title} text={link.description} />
+      case 'gallery':
+        return <GalleryBlock title={link.title} images={parseImages(link.images)} />
+      case 'spotify': {
+        const embedUrl = spotifyEmbedUrl(link.url)
+        return embedUrl ? <SpotifyBlock title={link.title} embedUrl={embedUrl} /> : null
+      }
+      case 'countdown':
+        return link.targetDate ? (
+          <CountdownBlock
+            linkId={link.id}
+            title={link.title}
+            description={link.description}
+            targetDate={new Date(link.targetDate).toISOString()}
+            url={link.url}
+          />
+        ) : null
+      case 'portfolio':
+        return (
+          <PortfolioCard
+            linkId={link.id}
+            title={link.title}
+            description={link.description}
+            image={link.thumbnail}
+            url={link.url}
+            featured={link.featured}
+          />
+        )
+      case 'embed-youtube':
+      case 'embed-twitter':
+      case 'embed-instagram':
+        return (
+          <SocialEmbed
+            url={link.url}
+            type={link.type.replace('embed-', '') as 'youtube' | 'twitter' | 'instagram'}
+            title={link.title}
+          />
+        )
+      default:
+        return (
+          <LinkButton
+            title={link.title}
+            // Şifreli linklerin gerçek URL'si tarayıcıya gönderilmez; şifre doğrulanınca sunucudan alınır
+            url={link.password ? '' : link.url}
+            icon={link.icon}
+            iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon)}
+            linkId={link.id}
+            type={link.type}
+            hasPassword={!!link.password}
+            passwordHint={link.passwordHint}
+            autoOpen={link.id === autoOpenLinkId}
+            featured={link.featured}
+            thumbnail={link.thumbnail}
+            variant={isGrid && !isWideBlock(link) ? 'tile' : 'row'}
+          />
+        )
+    }
+  }
+
   return (
     <main className="min-h-screen relative overflow-hidden">
+      <ThemeScript />
+      <ViewTracker />
       <ThemeProvider
         theme={{
           primaryColor: profile.primaryColor,
@@ -98,7 +194,19 @@ export default async function Home() {
             imageUrl={profile.imageUrl}
             verified={profile.verified}
             badges={profile.badges}
+            coverImage={profile.coverImage}
           />
+
+          {profile.showSocialIcons && (
+            <SocialIcons
+              linkedinUrl={profile.linkedinUrl}
+              twitterUrl={profile.twitterUrl}
+              discordUrl={profile.discordUrl}
+              youtubeUrl={profile.youtubeUrl}
+              instagramUrl={profile.instagramUrl}
+              githubUrl={profile.githubUrl}
+            />
+          )}
 
           <div className="mt-8 space-y-4 w-full">
             {links.length === 0 ? (
@@ -121,35 +229,13 @@ export default async function Home() {
                     )}
                     
                     {/* Kategori Linkleri */}
-                    {linksByCategory[category].map((link: any) => {
-                      // Embed tipleri için özel render
-                      if (link.type?.startsWith('embed-')) {
-                        const embedType = link.type.replace('embed-', '') as 'youtube' | 'twitter' | 'instagram'
-                        return (
-                          <SocialEmbed
-                            key={link.id}
-                            url={link.url}
-                            type={embedType}
-                            title={link.title}
-                          />
-                        )
-                      }
-                      
-                      // Normal link button
-                      return (
-                        <LinkButton
-                          key={link.id}
-                          title={link.title}
-                          url={link.url}
-                          icon={link.icon}
-                          linkId={link.id}
-                          type={link.type}
-                          contactEmail={profile.contactEmail}
-                          hasPassword={!!link.password}
-                          passwordHint={link.passwordHint}
-                        />
-                      )
-                    })}
+                    <div className={isGrid ? 'grid grid-cols-2 gap-3' : 'space-y-4'}>
+                      {linksByCategory[category].map((link: any) => (
+                        <div key={link.id} className={isGrid && isWideBlock(link) ? 'col-span-2' : undefined}>
+                          {renderBlock(link)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </>
@@ -157,13 +243,13 @@ export default async function Home() {
           </div>
 
           {/* Action Buttons */}
-          <ActionButtons 
-            url={typeof window !== 'undefined' ? window.location.href : 'https://yoursite.com'}
+          <ActionButtons
             title={`${profile.name} - Link Tree`}
+            showVCard={profile.showVCard}
           />
 
           <footer className="mt-16 text-center text-gray-600 text-sm">
-            <p>© 2026 {profile.name}. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
           </footer>
         </div>
       </div>

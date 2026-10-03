@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const authenticated = await isAuthenticated()
@@ -29,6 +31,7 @@ export async function GET() {
         ogImageUrl: profile.ogImageUrl,
         contactEmail: profile.contactEmail,
         contactPhone: profile.contactPhone,
+        showVCard: profile.showVCard,
         contactAddress: profile.contactAddress,
         verified: profile.verified,
         badges: profile.badges,
@@ -45,6 +48,8 @@ export async function GET() {
         backgroundType: profile.backgroundType,
         backgroundImage: profile.backgroundImage,
         backgroundOpacity: profile.backgroundOpacity,
+        coverImage: profile.coverImage,
+        layout: profile.layout,
         darkMode: profile.darkMode,
         analyticsRetentionDays: profile.analyticsRetentionDays,
         // SMTP Settings
@@ -64,6 +69,7 @@ export async function GET() {
         youtubeUrl: profile.youtubeUrl,
         instagramUrl: profile.instagramUrl,
         githubUrl: profile.githubUrl,
+        showSocialIcons: profile.showSocialIcons,
       } : null,
       links: links.map(link => ({
         title: link.title,
@@ -77,6 +83,11 @@ export async function GET() {
         passwordHint: link.passwordHint,
         startDate: link.startDate,
         endDate: link.endDate,
+        featured: link.featured,
+        thumbnail: link.thumbnail,
+        description: link.description,
+        images: link.images,
+        targetDate: link.targetDate,
         // Şifreleri dışa aktarma (güvenlik için isteğe bağlı)
         hasPassword: !!link.password
       }))

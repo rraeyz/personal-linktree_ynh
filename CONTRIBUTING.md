@@ -10,15 +10,23 @@ Thank you for your interest in contributing! This document provides guidelines f
    git clone https://github.com/rraeyz/personal-linktree_ynh.git
    cd personal-linktree_ynh
    ```
-3. **Install dependencies:**
+3. **Install dependencies (Node.js 20):**
    ```bash
-   npm install
+   npm ci --legacy-peer-deps
    ```
-4. **Run setup wizard:**
+4. **Create the database and run the setup wizard:**
    ```bash
+   export DATABASE_URL="file:./prisma/dev.db"
+   npx prisma generate
+   npx prisma db push
    npm run dev
    # Visit http://localhost:3000/setup
    ```
+5. **Before opening a PR, run the checks** (CI runs the same ones plus end-to-end tests against a Docker container, see README):
+   ```bash
+   npx tsc --noEmit && npm run lint && npm run build
+   ```
+6. **Schema changes:** add new fields with a default value (`@default(...)`). Existing installs are upgraded automatically by `db-migrate.js`, which only adds missing tables/columns/indexes.
 
 ## 📝 Development Workflow
 

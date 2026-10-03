@@ -9,6 +9,8 @@
   --color-background: #0a0a0a;
   --color-card: #1a1a1a;
   --color-text: #ffffff;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-input: rgba(0, 0, 0, 0.35);
   
   /* Layout */
   --border-radius: 0.75rem;
@@ -18,6 +20,14 @@
 body {
   background-color: var(--color-background);
   color: var(--color-text);
+}
+
+.bg-dynamic-input {
+  background-color: var(--color-input);
+}
+
+.border-dynamic {
+  border-color: var(--color-border);
 }
 
 /* Custom utility classes */
@@ -57,12 +67,6 @@ body {
   transition-duration: var(--animation-duration);
 }
 
-:root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 10, 10, 10;
-  --background-end-rgb: 10, 10, 10;
-}
-
 * {
   box-sizing: border-box;
   padding: 0;
@@ -72,17 +76,14 @@ body {
 html,
 body {
   max-width: 100vw;
+  /* clip: yatay taşmayı gizler ama (hidden'ın aksine) kaydırma kabı oluşturmaz;
+     hidden, sayfadaki tüm position: sticky öğeleri bozuyordu. Eski tarayıcılar hidden'a düşer. */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: var(--font-inter), sans-serif;
   min-height: 100vh;
 }
 
@@ -98,7 +99,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -115,4 +116,49 @@ body {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tema rengiyle hafif hover arka planı (açık ve koyu modda çalışır) */
+.hover-dynamic:hover {
+  background-color: rgba(127, 127, 127, 0.15);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  .hover-dynamic:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  }
+}
+
+/* Tema editöründeki "Köşe Yuvarlaklığı" (ThemeProvider --border-radius'u ayarlar) */
+.rounded-dynamic {
+  border-radius: var(--border-radius);
+}
+
+/* Öne çıkan link: tema renkleriyle akan gradient çerçeve */
+.featured-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(120deg, var(--color-primary), var(--color-accent), var(--color-primary));
+  background-size: 200% 100%;
+  animation: featured-shift 4s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes featured-shift {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-card::before {
+    animation: none;
+  }
 }

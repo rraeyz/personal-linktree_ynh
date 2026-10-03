@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Domain veya yol değişince çalışır: `yunohost app change-url <app> -d yeni.domain -p /`
+# Yeni değerler $domain/$path, eskiler $old_domain/$old_path değişkenlerinde.
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# CHECKS
+#=================================================
+
+# Uygulama henüz alt yolda (ör. /linktree) çalışmıyor; hata verirsek YunoHost eski ayarı geri yükler
+if [ "$path" != "/" ]; then
+    ynh_die --message="Alt yola kurulum desteklenmiyor. Yolu / olarak bırakın (ör. -p /)."
+fi
+
+#=================================================
+# MODIFY URL IN NGINX CONF
+#=================================================
+ynh_script_progression --message="Updating NGINX web server configuration..." --weight=1
+
+ynh_change_url_nginx_config
+
+#=================================================
+# UPDATE DOCKER COMPOSE (NEXT_PUBLIC_BASE_URL) AND RESTART
+#=================================================
+ynh_script_progression --message="Restarting the app on the new URL..." --weight=3
+
+ynh_add_config --template="docker-compose.yml" --destination="$install_dir/docker-compose.yml"
+
+cd "$install_dir"
+docker-compose up -d
+wait_for_app
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+ynh_script_progression --message="Change of URL completed for $app" --last

@@ -6,7 +6,9 @@ services:
     container_name: __APP__
     restart: unless-stopped
     ports:
-      - "__PORT__:3000"
+      # Sadece yerel arayüz: nginx 127.0.0.1 üzerinden bağlanır. Tüm arayüzlere açılırsa Docker
+      # YunoHost güvenlik duvarını atlar ve uygulama nginx/HTTPS olmadan doğrudan erişilebilir olur.
+      - "127.0.0.1:__PORT__:3000"
     env_file:
       - __DATA_DIR__/.env
     environment:
@@ -18,7 +20,7 @@ services:
       - __DATA_DIR__/uploads:/app/public/uploads
       - __DATA_DIR__/.env:/app/.env
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/profile"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

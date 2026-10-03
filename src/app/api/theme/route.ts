@@ -1,24 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { cookies } from 'next/headers'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+import { isAuthenticated } from '@/lib/auth'
 
 export async function PUT(request: NextRequest) {
   try {
-    // Token kontrolü
-    const cookieStore = await cookies()
-    const token = cookieStore.get('auth-token')
-
-    if (!token) {
+    if (!(await isAuthenticated())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    try {
-      jwt.verify(token.value, JWT_SECRET)
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
     const {
@@ -35,6 +22,7 @@ export async function PUT(request: NextRequest) {
       backgroundType,
       backgroundImage,
       backgroundOpacity,
+      layout,
     } = await request.json()
 
     // İlk profili bul ve güncelle
@@ -60,6 +48,8 @@ export async function PUT(request: NextRequest) {
         backgroundType: backgroundType || 'gradient-blur',
         backgroundImage: backgroundImage || '',
         backgroundOpacity: backgroundOpacity !== undefined ? backgroundOpacity : 100,
+        // Sayfa düzeni: classic (liste) | grid (bento ızgara); gönderilmezse değişmez
+        ...(layout !== undefined ? { layout: layout === 'grid' ? 'grid' : 'classic' } : {}),
       },
     })
 

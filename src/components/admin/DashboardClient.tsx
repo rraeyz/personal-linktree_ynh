@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FaHome, FaSignOutAlt, FaUser, FaLink, FaQrcode, FaPalette, FaChartLine, FaEnvelope, FaCog, FaPaperPlane } from 'react-icons/fa'
+import { FaHome, FaMobileAlt, FaSignOutAlt, FaUser, FaLink, FaQrcode, FaPalette, FaChartLine, FaEnvelope, FaCog, FaPaperPlane } from 'react-icons/fa'
 import ProfileEditor from './ProfileEditor'
 import LinksEditor from './LinksEditor'
 import QRCodeGenerator from './QRCodeGenerator'
@@ -11,6 +11,7 @@ import AnalyticsDashboard from './AnalyticsDashboard'
 import SubscriberManagement from './SubscriberManagement'
 import SettingsPanel from './SettingsPanel'
 import CustomEmailPanel from './CustomEmailPanel'
+import LivePreview from './LivePreview'
 
 interface DashboardClientProps {
   initialProfile: any
@@ -19,15 +20,29 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ initialProfile, initialLinks }: DashboardClientProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'links' | 'qr' | 'theme' | 'analytics' | 'subscribers' | 'settings' | 'custom-email'>('profile')
+  const [showPreview, setShowPreview] = useState(false)
   const router = useRouter()
 
-  // LocalStorage'dan sekmeyi yükle
+  // LocalStorage'dan sekmeyi ve önizleme tercihini yükle
   useEffect(() => {
-    const savedTab = localStorage.getItem('dashboardActiveTab')
-    if (savedTab) {
-      setActiveTab(savedTab as any)
+    try {
+      const savedTab = localStorage.getItem('dashboardActiveTab')
+      if (savedTab) setActiveTab(savedTab as any)
+      // Önizleme yalnızca geniş ekranda kendiliğinden açılır (dar ekranda tam ekran kaplar)
+      if (localStorage.getItem('dashboardPreview') === '1' && window.matchMedia('(min-width: 1024px)').matches) {
+        setShowPreview(true)
+      }
+    } catch {
+      // localStorage kullanılamıyor
     }
   }, [])
+
+  const togglePreview = (open: boolean) => {
+    setShowPreview(open)
+    try {
+      localStorage.setItem('dashboardPreview', open ? '1' : '0')
+    } catch {}
+  }
 
   // Sekme değiştiğinde localStorage'a kaydet
   const handleTabChange = (tab: typeof activeTab) => {
@@ -49,6 +64,15 @@ export default function DashboardClient({ initialProfile, initialLinks }: Dashbo
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
             <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => togglePreview(!showPreview)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${showPreview ? 'bg-purple-500/20 text-purple-300' : 'bg-dark-bg hover:bg-dark-hover text-gray-300 hover:text-white'}`}
+                aria-pressed={showPreview}
+              >
+                <FaMobileAlt className="w-4 h-4" />
+                <span>Önizleme</span>
+              </button>
               <a
                 href="/"
                 target="_blank"
@@ -165,7 +189,8 @@ export default function DashboardClient({ initialProfile, initialLinks }: Dashbo
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${showPreview ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_375px] lg:gap-8 lg:items-start' : ''}`}>
+        <div className="min-w-0">
         {activeTab === 'settings' && <SettingsPanel />}
         {activeTab === 'profile' && <ProfileEditor initialProfile={initialProfile} />}
         {activeTab === 'links' && <LinksEditor initialLinks={initialLinks} />}
@@ -179,6 +204,8 @@ export default function DashboardClient({ initialProfile, initialLinks }: Dashbo
           />
         )}
         {activeTab === 'theme' && <ThemeEditor initialProfile={initialProfile} />}
+        </div>
+        {showPreview && <LivePreview onClose={() => togglePreview(false)} />}
       </div>
     </main>
   )

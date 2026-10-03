@@ -10,6 +10,10 @@ interface SocialEmbedProps {
   title: string
 }
 
+// URL HTML attribute'una konmadan önce escape edilir (tırnakla attribute dışına çıkılamasın)
+const escapeAttr = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
 export default function SocialEmbed({ url, type, title }: SocialEmbedProps) {
   const [loading, setLoading] = useState(true)
   const [embedHtml, setEmbedHtml] = useState('')
@@ -44,7 +48,7 @@ export default function SocialEmbed({ url, type, title }: SocialEmbedProps) {
           if (tweetId) {
             setEmbedHtml(`
               <blockquote class="twitter-tweet" data-theme="dark">
-                <a href="${url}"></a>
+                <a href="${escapeAttr(url)}"></a>
               </blockquote>
             `)
             // Twitter widget script'i yükle
@@ -56,7 +60,7 @@ export default function SocialEmbed({ url, type, title }: SocialEmbedProps) {
         } else if (type === 'instagram') {
           // Instagram embed
           setEmbedHtml(`
-            <blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14" style="background:#000; border:0; border-radius:12px; max-width:100%; padding:0; width:calc(100% - 2px);">
+            <blockquote class="instagram-media" data-instgrm-permalink="${escapeAttr(url)}" data-instgrm-version="14" style="background:#000; border:0; border-radius:12px; max-width:100%; padding:0; width:calc(100% - 2px);">
             </blockquote>
           `)
           // Instagram embed script'i yükle

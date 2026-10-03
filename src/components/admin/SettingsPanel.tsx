@@ -18,6 +18,7 @@ export default function SettingsPanel() {
   const [smtpPort, setSmtpPort] = useState(587)
   const [smtpUser, setSmtpUser] = useState('')
   const [smtpPassword, setSmtpPassword] = useState('')
+  const [hasSmtpPassword, setHasSmtpPassword] = useState(false)
   const [smtpFrom, setSmtpFrom] = useState('')
   const [smtpFromName, setSmtpFromName] = useState('')
   const [smtpSecure, setSmtpSecure] = useState(false)
@@ -33,6 +34,7 @@ export default function SettingsPanel() {
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [instagramUrl, setInstagramUrl] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
+  const [showSocialIcons, setShowSocialIcons] = useState(true)
   const [signatureMessage, setSignatureMessage] = useState('')
   const [signatureSaving, setSignatureSaving] = useState(false)
   
@@ -57,7 +59,8 @@ export default function SettingsPanel() {
           setSmtpHost(data.smtpHost || '')
           setSmtpPort(data.smtpPort || 587)
           setSmtpUser(data.smtpUser || '')
-          setSmtpPassword(data.smtpPassword || '')
+          setSmtpPassword('')
+          setHasSmtpPassword(!!data.hasSmtpPassword)
           setSmtpFrom(data.smtpFrom || '')
           setSmtpFromName(data.smtpFromName || '')
           setSmtpSecure(data.smtpSecure || false)
@@ -69,6 +72,7 @@ export default function SettingsPanel() {
           setYoutubeUrl(data.youtubeUrl || '')
           setInstagramUrl(data.instagramUrl || '')
           setGithubUrl(data.githubUrl || '')
+          setShowSocialIcons(data.showSocialIcons ?? true)
         }
       })
       .catch(console.error)
@@ -82,8 +86,8 @@ export default function SettingsPanel() {
       return
     }
 
-    if (newPassword.length < 6) {
-      setMessage('Yeni şifre en az 6 karakter olmalı')
+    if (newPassword.length < 8) {
+      setMessage('Yeni şifre en az 8 karakter olmalı')
       return
     }
 
@@ -100,7 +104,7 @@ export default function SettingsPanel() {
       const data = await response.json()
 
       if (response.ok) {
-        setMessage('Şifre başarıyla değiştirildi!')
+        setMessage('Şifre başarıyla değiştirildi! Tüm oturumlar kapatıldı, yeni şifrenizle giriş yapın.')
         setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
@@ -236,6 +240,8 @@ export default function SettingsPanel() {
       const data = await response.json()
 
       if (response.ok) {
+        setHasSmtpPassword(!!data.hasSmtpPassword)
+        setSmtpPassword('')
         setSmtpMessage('SMTP ayarları kaydedildi!')
       } else {
         setSmtpMessage(data.error || 'Kaydetme başarısız')
@@ -264,7 +270,8 @@ export default function SettingsPanel() {
           discordUrl,
           youtubeUrl,
           instagramUrl,
-          githubUrl
+          githubUrl,
+          showSocialIcons
         }),
       })
 
@@ -315,7 +322,7 @@ export default function SettingsPanel() {
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
@@ -329,7 +336,7 @@ export default function SettingsPanel() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
@@ -352,6 +359,24 @@ export default function SettingsPanel() {
             <span>{saving ? 'Kaydediliyor...' : 'Şifreyi Değiştir'}</span>
           </button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-gray-800">
+          <h3 className="text-sm font-medium text-gray-300 mb-1">Tüm cihazlardan çıkış yap</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Başka bir bilgisayarda veya telefonda açık kalmış oturumlar dahil tüm oturumları kapatır.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!confirm('Tüm cihazlardaki oturumlar kapatılacak. Devam edilsin mi?')) return
+              await fetch('/api/auth/logout-all', { method: 'POST' })
+              router.push('/admin/login')
+            }}
+            className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 transition-colors text-sm"
+          >
+            Tüm oturumları kapat
+          </button>
+        </div>
       </div>
 
       {/* Import/Export Settings */}
@@ -528,7 +553,8 @@ export default function SettingsPanel() {
               type="password"
               value={smtpPassword}
               onChange={(e) => setSmtpPassword(e.target.value)}
-              placeholder="••••••••••••••••"
+              placeholder={hasSmtpPassword ? 'Kayıtlı — değiştirmek için yeni şifre girin' : '••••••••••••••••'}
+              autoComplete="new-password"
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
@@ -718,6 +744,19 @@ export default function SettingsPanel() {
             />
           </div>
         </div>
+
+        <label className="flex items-start gap-3 p-4 bg-dark-bg border border-gray-700 rounded-xl cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showSocialIcons}
+            onChange={(e) => setShowSocialIcons(e.target.checked)}
+            className="mt-1 w-4 h-4 accent-purple-500"
+          />
+          <span>
+            <span className="block text-sm font-medium text-white">Sosyal medya linklerini ana sayfada da göster</span>
+            <span className="block text-xs text-gray-400 mt-1">Profilinizin altında ikon olarak görünür. Sadece doldurduğunuz hesaplar gösterilir.</span>
+          </span>
+        </label>
 
         {signatureMessage && (
           <div className={`px-4 py-3 rounded-xl text-sm ${

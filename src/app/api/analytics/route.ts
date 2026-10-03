@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
+import { referrerHost } from '@/lib/analytics'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,6 +29,9 @@ export async function GET(request: NextRequest) {
             lt: cutoffDate
           }
         }
+      })
+      await prisma.pageView.deleteMany({
+        where: { timestamp: { lt: cutoffDate } }
       })
     }
 
@@ -66,6 +72,36 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Profil görüntülenmeleri
+    const pageViews = await prisma.pageView.findMany({
+      where: { timestamp: { gte: startDate } },
+      select: { timestamp: true, ipHash: true, referrer: true, utmSource: true, utmMedium: true, utmCampaign: true },
+    })
+    const viewsByDay: Record<string, number> = {}
+    const campaigns: Record<string, { views: number; clicks: number }> = {}
+    const campaignKey = (item: { utmSource: string; utmMedium: string; utmCampaign: string }) =>
+      [item.utmSource, item.utmMedium, item.utmCampaign].filter(Boolean).join(' / ')
+    for (const view of pageViews) {
+      const day = view.timestamp.toISOString().split('T')[0]
+      viewsByDay[day] = (viewsByDay[day] || 0) + 1
+      const key = campaignKey(view)
+      if (key) {
+        campaigns[key] ??= { views: 0, clicks: 0 }
+        campaigns[key].views++
+      }
+    }
+    // Etkileşim: sayfayı görüntüleyen tekil ziyaretçilerden kaçı en az bir linke tıkladı.
+    // (Kısa link /go/... tıklamalarında sayfa görüntülenmediği için tıklama/görüntülenme oranı %100'ü aşabilir)
+    const visitorHashes = new Set(pageViews.map(v => v.ipHash))
+    const clickerHashes = new Set(analytics.map(a => a.ipHash))
+    let engagedVisitors = 0
+    visitorHashes.forEach(hash => { if (clickerHashes.has(hash)) engagedVisitors++ })
+    const viewStats = {
+      views: pageViews.length,
+      uniqueVisitors: visitorHashes.size,
+      engagedVisitors,
+    }
+
     // Eğer Analytics boşsa, Link.clicks verilerinden basit trend oluştur
     if (analytics.length === 0) {
       const links = await prisma.link.findMany({
@@ -90,7 +126,8 @@ export async function GET(request: NextRequest) {
         
         dailyClicks.push({
           date: dateStr,
-          count: 0 // Gerçek tarihli veri yok
+          count: 0, // Gerçek tarihli veri yok
+          views: viewsByDay[dateStr] || 0
         })
       }
 
@@ -101,7 +138,10 @@ export async function GET(request: NextRequest) {
         countries: {},
         referrers: {},
         dailyClicks: dailyClicks,
-        recentClicks: []
+        recentClicks: [],
+        ...viewStats,
+        rangeClicks: 0,
+        campaigns: Object.entries(campaigns).map(([name, value]) => ({ name, ...value })),
       })
     }
 
@@ -128,10 +168,18 @@ export async function GET(request: NextRequest) {
 
     // Top referrers
     const referrerStats = analytics.reduce((acc: any, item) => {
-      const referrer = item.referrer || 'direct'
+      const referrer = referrerHost(item.referrer) || 'direct'
       acc[referrer] = (acc[referrer] || 0) + 1
       return acc
     }, {})
+
+    for (const item of analytics) {
+      const key = campaignKey(item)
+      if (key) {
+        campaigns[key] ??= { views: 0, clicks: 0 }
+        campaigns[key].clicks++
+      }
+    }
 
     // Daily clicks - range'e göre dinamik
     let dailyClicksArray: any[] = []
@@ -157,7 +205,7 @@ export async function GET(request: NextRequest) {
         })
         
         dailyClicksArray = Object.entries(dailyClicks)
-          .map(([date, count]) => ({ date, count }))
+          .map(([date, count]) => ({ date, count, views: viewsByDay[date] || 0 }))
           .sort((a, b) => a.date.localeCompare(b.date))
       }
     } else {
@@ -182,7 +230,7 @@ export async function GET(request: NextRequest) {
       })
       
       dailyClicksArray = Object.entries(dailyClicks)
-        .map(([date, count]) => ({ date, count }))
+        .map(([date, count]) => ({ date, count, views: viewsByDay[date] || 0 }))
         .sort((a, b) => a.date.localeCompare(b.date))
     }
 
@@ -193,7 +241,12 @@ export async function GET(request: NextRequest) {
       countries: countryStats,
       referrers: referrerStats,
       dailyClicks: dailyClicksArray,
-      recentClicks: analytics.slice(0, 50)
+      recentClicks: analytics.slice(0, 50),
+      ...viewStats,
+      rangeClicks: analytics.length,
+      campaigns: Object.entries(campaigns)
+        .map(([name, value]) => ({ name, ...value }))
+        .sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks)),
     })
   } catch (error) {
     console.error('Analytics error:', error)
