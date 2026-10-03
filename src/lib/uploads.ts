@@ -78,3 +78,56 @@ export async function readUploadedImage(fileName: string): Promise<{ data: Buffe
     return null
   }
 }
+
+// Eski sürümler yüklenen görselleri base64 (data: URI) olarak database'e yazıyordu; bu görseller
+// her sayfa yüklemesinde HTML'e gömülüyor, e-posta ve sosyal medya önizlemelerinde çalışmıyordu.
+// İlk istekte bunları dosyaya çevirip database'i günceller. Çevrilemeyen biçimler (SVG, ICO) olduğu gibi kalır.
+const INLINE_IMAGE_FIELDS = [
+  ['imageUrl', 'avatar'],
+  ['faviconUrl', 'favicon'],
+  ['ogImageUrl', 'og'],
+  ['backgroundImage', 'background'],
+] as const
+
+type InlineImageProfile = Partial<Record<(typeof INLINE_IMAGE_FIELDS)[number][0], string>>
+
+const globalForMigration = globalThis as unknown as { inlineImageMigration?: Promise<Record<string, string>> }
+
+// Sadece dosyaya çevrilebilen biçimler; SVG/ICO data URI'leri her istekte boşuna denenmesin
+const CONVERTIBLE_DATA_URI = /^data:image\/(jpeg|jpg|png|webp|gif|avif);base64,(.+)$/i
+
+export function hasInlineImages(profile: InlineImageProfile): boolean {
+  return INLINE_IMAGE_FIELDS.some(([field]) => CONVERTIBLE_DATA_URI.test(profile[field] || ''))
+}
+
+// Dönen nesne: dosyaya çevrilen alanların yeni değerleri (değişmeyenler yok)
+export function migrateInlineImages(
+  profile: InlineImageProfile,
+  save: (data: Record<string, string>) => Promise<unknown>
+): Promise<Record<string, string>> {
+  // Aynı anda gelen istekler aynı işi iki kez yapmasın
+  if (globalForMigration.inlineImageMigration) return globalForMigration.inlineImageMigration
+
+  globalForMigration.inlineImageMigration = (async () => {
+    const updates: Record<string, string> = {}
+    for (const [field, kind] of INLINE_IMAGE_FIELDS) {
+      const value = profile[field]
+      const match = value?.match(CONVERTIBLE_DATA_URI)
+      if (!match) continue
+      try {
+        updates[field] = await saveUploadedImage(Buffer.from(match[2], 'base64'), kind)
+      } catch (error) {
+        console.warn(`Base64 görsel dosyaya çevrilemedi (${field}), olduğu gibi bırakıldı:`, error instanceof Error ? error.message : error)
+      }
+    }
+    if (Object.keys(updates).length > 0) {
+      await save(updates)
+      console.log(`🖼️  ${Object.keys(updates).length} base64 görsel dosyaya taşındı: ${Object.keys(updates).join(', ')}`)
+    }
+    return updates
+  })().finally(() => {
+    globalForMigration.inlineImageMigration = undefined
+  })
+
+  return globalForMigration.inlineImageMigration
+}

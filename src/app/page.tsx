@@ -10,6 +10,7 @@ import ThemeScript from '@/components/ThemeScript'
 import ViewTracker from '@/components/ViewTracker'
 import SocialIcons from '@/components/SocialIcons'
 import { renderLinkIcon } from '@/lib/linkIcon'
+import { hasInlineImages, migrateInlineImages } from '@/lib/uploads'
 import { redirect } from 'next/navigation'
 import { isSetupComplete } from '@/lib/auth'
 
@@ -36,6 +37,18 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
   // İlk kez çalışıyorsa setup'a yönlendir
   if (!profile) {
     redirect('/setup')
+  }
+
+  // Eski sürümlerden kalan base64 görselleri bir kerelik dosyaya taşı
+  if (hasInlineImages(profile)) {
+    const currentProfile = profile
+    const updates = await migrateInlineImages(currentProfile, (data) =>
+      prisma.profile.update({ where: { id: currentProfile.id }, data })
+    ).catch((error) => {
+      console.error('Base64 görsel taşıma hatası:', error)
+      return {}
+    })
+    profile = { ...profile, ...updates }
   }
 
   // Aktif linkleri sıralı şekilde al ve scheduled links'i filtrele
