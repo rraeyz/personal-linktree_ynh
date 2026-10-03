@@ -48,15 +48,12 @@ export function isPublicAddress(ip: string): boolean {
   return false
 }
 
-// Test ortamı için: yerel test sunucusuna erişime izin verir. Üretimde AYARLAMAYIN.
-const allowPrivate = () => process.env.LINK_PREVIEW_ALLOW_PRIVATE === '1'
-
 const safeLookup: LookupFunction = (hostname, options, callback) => {
   dns.lookup(hostname, { all: true }, (error, addresses) => {
     if (error) return (callback as any)(error)
     const list = addresses as dns.LookupAddress[]
     const blocked = list.find((a) => !isPublicAddress(a.address))
-    if (blocked && !allowPrivate()) {
+    if (blocked) {
       return (callback as any)(new PreviewError('Bu adres özel/yerel bir ağa çıkıyor, izin verilmiyor'))
     }
     if ((options as any)?.all) return (callback as any)(null, list)
@@ -77,7 +74,7 @@ function fetchSafe(rawUrl: string, maxBytes: number, redirects = 0): Promise<{ b
     }
     // IP adresiyle yazılmış hostlarda DNS çözümlemesi yapılmaz; doğrudan kontrol et
     const host = url.hostname.replace(/^\[|\]$/g, '')
-    if (net.isIP(host) && !isPublicAddress(host) && !allowPrivate()) {
+    if (net.isIP(host) && !isPublicAddress(host)) {
       return reject(new PreviewError('Bu adres özel/yerel bir ağa çıkıyor, izin verilmiyor'))
     }
 
