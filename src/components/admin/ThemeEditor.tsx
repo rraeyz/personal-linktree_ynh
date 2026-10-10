@@ -42,7 +42,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
       setFontFamily(preset.fontFamily)
       setBorderRadius(preset.borderRadius)
       setAnimationSpeed(preset.animationSpeed)
-      setBackgroundType('gradient-blur')
+      setBackgroundType(preset.backgroundType || 'gradient-blur')
       setBackgroundImage('')
       setBackgroundOpacity(100)
     }
@@ -121,11 +121,11 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
       {/* Sayfa Düzeni */}
       <div className="p-6 bg-dark-card rounded-xl border border-gray-800">
         <h3 className="text-lg font-semibold text-white mb-1">Sayfa Düzeni</h3>
-        <p className="text-sm text-gray-400 mb-4">Linkler ve blokların ana sayfada nasıl dizileceği</p>
+        <p className="text-sm text-gray-400 mb-4">Linklerin nasıl görüneceği. Blokların sırasını Linkler ve Bloklar bölümünden değiştirirsin; geniş ekranda profil kartı solda, bloklar sağda durur.</p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { value: 'classic', label: 'Klasik liste', description: 'Alt alta geniş butonlar' },
-            { value: 'grid', label: 'Bento ızgara', description: 'Linkler ikişerli kutular; metin, galeri ve öne çıkanlar tam genişlik' },
+            { value: 'classic', label: 'Satırlar', description: 'Linkler ikon + başlık satırları (geniş ekranda ikişerli)' },
+            { value: 'grid', label: 'Kutular', description: 'Linkler telefonda da ikişerli kutu; görseli olan linkte görsel üstte' },
           ].map((option) => (
             <button
               key={option.value}

@@ -189,6 +189,44 @@ test('blok tipleri, düzen ve öne çıkan link', async () => {
   assert.ok(home.includes('grid grid-cols-2'), 'ızgara düzeni uygulanmalı')
 })
 
+test('ziyaretçi sayfası: profil kartı, dinamik bloklar ve sıra', async () => {
+  const put = (body) => req('/api/profile', { method: 'PUT', cookie: admin, body })
+  assert.equal((await put({ timezone: 'Mars/Olympus' })).status, 400, 'geçersiz saat dilimi reddedilmeli')
+  assert.equal((await put({ statusText: 'Tez yazıyor', location: 'İstanbul', timezone: 'Europe/Istanbul', showNewsletter: false, showShareButton: false })).status, 200)
+  let home = (await req('/', { json: false })).text
+  assert.ok(home.includes('Tez yazıyor') && home.includes('İstanbul'), 'durum ve konum görünmeli')
+  assert.ok(!home.includes('newsletter-email'), 'bülten kapalıyken kutu olmamalı')
+  // SMTP yarım (şifre/kullanıcı yok) olduğu için "Bana yaz" gizli kalmalı
+  assert.ok(!home.includes('Bana yaz'), 'SMTP eksikken Bana yaz görünmemeli')
+
+  assert.equal((await put({ statusText: '', location: '', showNewsletter: true })).status, 200)
+  home = (await req('/', { json: false })).text
+  assert.ok(!home.includes('Tez yazıyor'), 'boş durum görünmemeli')
+  assert.ok(home.includes('newsletter-email'), 'bülten açıkken kutu olmalı')
+
+  // İçi boş blok (görselsiz galeri) sayfada yer kaplamaz (blok sarmalayıcı sayısı değişmemeli)
+  const blockCount = (html) => (html.match(/data-cat="/g) || []).length
+  const before = blockCount(home)
+  const empty = await req('/api/links', { method: 'POST', cookie: admin, body: { type: 'gallery', title: 'Boş galeri', images: [] } })
+  assert.equal(empty.status, 200)
+  home = (await req('/', { json: false })).text
+  assert.equal(blockCount(home), before, 'boş galeri çizilmemeli')
+  assert.ok(!home.includes('Boş galeri'))
+
+  // Sıra: metin bloğunu en üste al, sayfada linklerden önce gelmeli
+  const links = (await req('/api/links', { cookie: admin })).data
+  const about = links.find((l) => l.title === 'Hakkımda')
+  const featured = links.find((l) => l.title === 'Öne Çıkan')
+  assert.ok(about && featured)
+  const reordered = [about, ...links.filter((l) => l.id !== about.id)]
+  for (const [index, link] of reordered.entries()) {
+    assert.equal((await req(`/api/links/${link.id}`, { method: 'PUT', cookie: admin, body: { order: index } })).status, 200)
+  }
+  home = (await req('/', { json: false })).text
+  assert.ok(home.indexOf('Merhaba dünya') < home.indexOf('Öne Çıkan'), 'Hakkımda en üste taşınmalı')
+  await req(`/api/links/${empty.data.id}`, { method: 'DELETE', cookie: admin })
+})
+
 test('link önizleme: yetki ve SSRF koruması', async () => {
   assert.equal((await req('/api/admin/link-preview', { method: 'POST', body: { url: 'https://example.com' } })).status, 401)
   for (const url of ['http://127.0.0.1:3000/', 'http://localhost/', 'http://169.254.169.254/latest/meta-data/', 'http://[::1]/', 'file:///etc/passwd']) {

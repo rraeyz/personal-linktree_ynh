@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FaPlus, FaTrash, FaTimes, FaGripVertical, FaSave, FaChartBar, FaFolder, FaEdit, FaLock, FaClock, FaStar } from 'react-icons/fa'
+import { FaPlus, FaTrash, FaTimes, FaGripVertical, FaSave, FaChartBar, FaFolder, FaEdit, FaLock, FaClock, FaStar, FaChevronUp, FaChevronDown } from 'react-icons/fa'
 import ScheduleStatus from '@/components/ScheduleStatus'
 import ImageUploadButton from './ImageUploadButton'
 import {
@@ -77,9 +77,9 @@ const linkCategories = [
 type Field = 'url' | 'urlOptional' | 'icon' | 'thumbnail' | 'featured' | 'password' | 'slug' | 'description' | 'images' | 'targetDate'
 
 const linkTypes: Array<{ value: string; label: string; icon: string; description: string; group: string; fields: Field[] }> = [
-  { value: 'link', label: 'Normal Link', icon: 'FaLink', description: 'Başka sayfaya yönlendir', group: 'Linkler', fields: ['url', 'icon', 'thumbnail', 'featured', 'password', 'slug'] },
+  { value: 'link', label: 'Normal Link', icon: 'FaLink', description: 'Başka sayfaya yönlendir', group: 'Linkler', fields: ['url', 'description', 'icon', 'thumbnail', 'featured', 'password', 'slug'] },
   { value: 'contact', label: 'Bana Ulaşın', icon: 'FaEnvelope', description: 'İletişim formu aç', group: 'Linkler', fields: ['icon', 'featured'] },
-  { value: 'donation', label: 'Bağış Yap', icon: 'FaDonate', description: 'Bağış sayfasına git', group: 'Linkler', fields: ['url', 'icon', 'thumbnail', 'featured', 'password', 'slug'] },
+  { value: 'donation', label: 'Bağış Yap', icon: 'FaDonate', description: 'Bağış sayfasına git', group: 'Linkler', fields: ['url', 'description', 'icon', 'thumbnail', 'featured', 'password', 'slug'] },
   { value: 'text', label: 'Metin', icon: 'FaAlignLeft', description: 'Başlık ve paragraf', group: 'İçerik', fields: ['description'] },
   { value: 'portfolio', label: 'Portfolyo Kartı', icon: 'FaBriefcase', description: 'Görsel + açıklama', group: 'İçerik', fields: ['urlOptional', 'thumbnail', 'description', 'featured'] },
   { value: 'countdown', label: 'Geri Sayım', icon: 'FaHourglassHalf', description: 'Etkinliğe kalan süre', group: 'İçerik', fields: ['targetDate', 'description', 'urlOptional'] },
@@ -302,8 +302,8 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
 
       {has('description') && (
         <div>
-          <label className={labelClass}>{form.type === 'text' ? 'Metin' : 'Açıklama'}</label>
-          <textarea value={form.description} onChange={(e) => set({ description: e.target.value })} rows={form.type === 'text' ? 5 : 3} className={`${inputClass} resize-y`} placeholder={form.type === 'text' ? 'Kendinizden veya duyurunuzdan bahsedin...' : 'Kısa açıklama'} />
+          <label className={labelClass}>{form.type === 'text' ? 'Metin' : has('url') ? 'Kısa açıklama (opsiyonel)' : 'Açıklama'}</label>
+          <textarea value={form.description} onChange={(e) => set({ description: e.target.value })} rows={form.type === 'text' ? 5 : has('url') ? 2 : 3} className={`${inputClass} resize-y`} placeholder={form.type === 'text' ? 'Kendinizden veya duyurunuzdan bahsedin...' : has('url') ? 'Başlığın altında küçük yazı olarak görünür' : 'Kısa açıklama'} />
         </div>
       )}
 
@@ -387,6 +387,7 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
             <option value="">Kategorisiz</option>
             {linkCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
           </select>
+          <p className="text-xs text-gray-500 mt-1">Sitede kategori sekmeleri olarak görünür (Profil → Profil kartı).</p>
         </div>
         {has('slug') && (
           <div>
@@ -456,7 +457,7 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
 
 // Sortable Link Item Component
 // Düzenlenen blokta form satırın hemen altında açılır (sayfanın başına kaydırmaya gerek kalmaz)
-function SortableLinkItem({ link, onToggle, onEdit, editing, editor }: { link: any; onToggle: (id: number, enabled: boolean) => void; onEdit: (link: any) => void; editing: boolean; editor: React.ReactNode }) {
+function SortableLinkItem({ link, onToggle, onEdit, onMoveUp, onMoveDown, editing, editor }: { link: any; onToggle: (id: number, enabled: boolean) => void; onEdit: (link: any) => void; onMoveUp?: () => void; onMoveDown?: () => void; editing: boolean; editor: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
@@ -515,6 +516,10 @@ function SortableLinkItem({ link, onToggle, onEdit, editing, editor }: { link: a
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-col">
+            <button type="button" onClick={onMoveUp} disabled={!onMoveUp} aria-label={`${link.title}: yukarı taşı`} title="Yukarı taşı" className="p-1.5 rounded text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent"><FaChevronUp className="w-3 h-3" /></button>
+            <button type="button" onClick={onMoveDown} disabled={!onMoveDown} aria-label={`${link.title}: aşağı taşı`} title="Aşağı taşı" className="p-1.5 rounded text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent"><FaChevronDown className="w-3 h-3" /></button>
+          </div>
           <button
             type="button"
             role="switch"
@@ -586,12 +591,8 @@ export default function LinksEditor({ initialLinks, autoAdd, onAutoAddHandled }:
     setError('')
   }
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = links.findIndex((link: any) => link.id === active.id)
-    const newIndex = links.findIndex((link: any) => link.id === over.id)
-    const newLinks = arrayMove(links, oldIndex, newIndex)
+  // Yeni sırayı kaydet (sürükle-bırak ve yukarı/aşağı okları ortak kullanır)
+  const persistOrder = async (newLinks: any[]) => {
     setLinks(newLinks)
     try {
       await Promise.all(newLinks.map((link: any, index: number) =>
@@ -601,6 +602,20 @@ export default function LinksEditor({ initialLinks, autoAdd, onAutoAddHandled }:
     } catch (err) {
       console.error('Sıralama güncellenirken hata:', err)
     }
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = links.findIndex((link: any) => link.id === active.id)
+    const newIndex = links.findIndex((link: any) => link.id === over.id)
+    await persistOrder(arrayMove(links, oldIndex, newIndex))
+  }
+
+  const moveLink = async (index: number, step: -1 | 1) => {
+    const target = index + step
+    if (target < 0 || target >= links.length) return
+    await persistOrder(arrayMove(links, index, target))
   }
 
   const handleSave = async () => {
@@ -677,8 +692,10 @@ export default function LinksEditor({ initialLinks, autoAdd, onAutoAddHandled }:
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-gray-400">
-          {links.length > 0 ? `${links.length} blok · tutamaçtan sürükleyerek sırala` : 'Sayfana ilk bloğu ekle'}
+        <p className="text-sm text-gray-400 max-w-2xl">
+          {links.length > 0
+            ? 'Sitedeki sıra buradaki sıradır: tutamaçtan sürükle ya da oklarla taşı. Art arda gelen linkler geniş ekranda ikişerli dizilir; öne çıkanlar, galeri ve Spotify tam genişlik kaplar.'
+            : 'Sayfana ilk bloğu ekle'}
         </p>
         <button
           type="button"
@@ -712,10 +729,12 @@ export default function LinksEditor({ initialLinks, autoAdd, onAutoAddHandled }:
             <p className="text-center text-gray-400 py-10 bg-dark-card rounded-2xl border border-gray-800">Henüz bir şey eklenmemiş</p>
           ) : (
             <SortableContext items={links.map((link: any) => link.id)} strategy={verticalListSortingStrategy}>
-              {links.map((link: any) => (
+              {links.map((link: any, index: number) => (
                 <SortableLinkItem
                   key={link.id}
                   link={link}
+                  onMoveUp={index > 0 ? () => moveLink(index, -1) : undefined}
+                  onMoveDown={index < links.length - 1 ? () => moveLink(index, 1) : undefined}
                   onToggle={toggleEnabled}
                   onEdit={handleEditClick}
                   editing={mode === 'edit' && editingId === link.id}

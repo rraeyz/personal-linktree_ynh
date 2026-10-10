@@ -28,13 +28,6 @@ export default function SettingsPanel() {
   // Email signature settings
   const [companyName, setCompanyName] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
-  const [linkedinUrl, setLinkedinUrl] = useState('')
-  const [twitterUrl, setTwitterUrl] = useState('')
-  const [discordUrl, setDiscordUrl] = useState('')
-  const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [instagramUrl, setInstagramUrl] = useState('')
-  const [githubUrl, setGithubUrl] = useState('')
-  const [showSocialIcons, setShowSocialIcons] = useState(true)
   const [signatureMessage, setSignatureMessage] = useState('')
   const [signatureSaving, setSignatureSaving] = useState(false)
   
@@ -66,13 +59,6 @@ export default function SettingsPanel() {
           setSmtpSecure(data.smtpSecure || false)
           setCompanyName(data.companyName || '')
           setCompanyAddress(data.companyAddress || '')
-          setLinkedinUrl(data.linkedinUrl || '')
-          setTwitterUrl(data.twitterUrl || '')
-          setDiscordUrl(data.discordUrl || '')
-          setYoutubeUrl(data.youtubeUrl || '')
-          setInstagramUrl(data.instagramUrl || '')
-          setGithubUrl(data.githubUrl || '')
-          setShowSocialIcons(data.showSocialIcons ?? true)
         }
       })
       .catch(console.error)
@@ -265,13 +251,6 @@ export default function SettingsPanel() {
         body: JSON.stringify({
           companyName,
           companyAddress,
-          linkedinUrl,
-          twitterUrl,
-          discordUrl,
-          youtubeUrl,
-          instagramUrl,
-          githubUrl,
-          showSocialIcons
         }),
       })
 
@@ -665,98 +644,10 @@ export default function SettingsPanel() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                🔗 LinkedIn URL
-              </label>
-              <input
-                type="url"
-                value={linkedinUrl}
-                onChange={(e) => setLinkedinUrl(e.target.value)}
-                placeholder="https://linkedin.com/company/..."
-                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-              />
-            </div>
+          <p className="text-sm text-gray-400 px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl">
+            İmzadaki sosyal medya ikonları <strong className="text-gray-200">Profil → Sosyal medya hesapları</strong> bölümünden alınır.
+          </p>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                𝕏 Twitter/X URL
-              </label>
-              <input
-                type="url"
-                value={twitterUrl}
-                onChange={(e) => setTwitterUrl(e.target.value)}
-                placeholder="https://twitter.com/..."
-                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                💬 Discord URL
-              </label>
-              <input
-                type="url"
-                value={discordUrl}
-                onChange={(e) => setDiscordUrl(e.target.value)}
-                placeholder="https://discord.gg/..."
-                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                ▶️ YouTube URL
-              </label>
-              <input
-                type="url"
-                value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-              placeholder="https://youtube.com/@..."
-              className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              📷 Instagram URL
-            </label>
-            <input
-              type="url"
-              value={instagramUrl}
-              onChange={(e) => setInstagramUrl(e.target.value)}
-              placeholder="https://instagram.com/..."
-              className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              🐙 GitHub URL
-            </label>
-            <input
-              type="url"
-              value={githubUrl}
-              onChange={(e) => setGithubUrl(e.target.value)}
-              placeholder="https://github.com/..."
-              className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-            />
-          </div>
-        </div>
-
-        <label className="flex items-start gap-3 p-4 bg-dark-bg border border-gray-700 rounded-xl cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showSocialIcons}
-            onChange={(e) => setShowSocialIcons(e.target.checked)}
-            className="mt-1 w-4 h-4 accent-purple-500"
-          />
-          <span>
-            <span className="block text-sm font-medium text-white">Sosyal medya linklerini ana sayfada da göster</span>
-            <span className="block text-xs text-gray-400 mt-1">Profilinizin altında ikon olarak görünür. Sadece doldurduğunuz hesaplar gösterilir.</span>
-          </span>
-        </label>
 
         {signatureMessage && (
           <div className={`px-4 py-3 rounded-xl text-sm ${

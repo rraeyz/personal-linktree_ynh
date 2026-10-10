@@ -1,3 +1,21 @@
+# 1.3.0
+
+### ✨ Yeni ziyaretçi sayfası
+- Geniş ekranda iki sütun: solda profil kartı (fotoğraf, isim, biyografi, durum, konum ve yerel saat, sosyal ikonlar, Bana yaz / Paylaş / Rehbere ekle, bülten), sağda bloklar. Telefonda alt alta.
+- Sayfa tamamen dinamik: boş bırakılan alanlar ve içi boş bloklar (görselsiz galeri, tarihsiz geri sayım vb.) hiç görünmez; öne çıkan yoksa öne çıkan kartı da yok.
+- Blokların sırası Linkler ve Bloklar'daki sıradır (Hakkımda, galeri, linkler... istediğin yere). Art arda gelen linkler, metinler ve proje kartları geniş ekranda ikişerli dizilir; öne çıkanlar, galeri, Spotify ve gömmeler tam genişlik.
+- Kategori sekmeleri: bloklarda en az iki kategori varsa üstte Tümü / kategori sekmeleri.
+- Yeni "Gece Gökyüzü" hazır teması, "Yıldızlı Gece" arka planı, Sora ve Manrope yazı tipleri.
+- Linklere kısa açıklama; öne çıkan linkler ve projeler geniş yatay kart.
+- "Bana yaz" penceresi; yalnızca iletişim e-postası ve SMTP ayarlıysa görünür.
+
+### 🛠 Admin
+- Profil → **Profil kartı**: durum, konum, saat dilimi; Bana yaz, Paylaş, Bülten kutusu ve Kategori sekmeleri için aç/kapa.
+- Profil → **Sosyal medya hesapları** (önceden Ayarlar → E-posta İmzası içindeydi; imza da buradan okur).
+- Linkler ve Bloklar: yukarı/aşağı taşıma okları (telefonda sürüklemeye gerek yok), linklere açıklama alanı.
+- Görünüm: hazır temalar kendi arka planını da seçer.
+- Önizleme kapalıyken içerik tüm genişliği kullanır.
+
 # 1.2.0
 
 ### ✨ Yeni admin paneli

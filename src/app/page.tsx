@@ -1,14 +1,15 @@
 import { prisma } from '@/lib/prisma'
-import ProfileSection from '@/components/ProfileSection'
 import LinkButton from '@/components/LinkButton'
 import DynamicBackground from '@/components/DynamicBackground'
 import ThemeProvider from '@/components/ThemeProvider'
-import ActionButtons from '@/components/ActionButtons'
 import SocialEmbed from '@/components/SocialEmbed'
 import ThemeToggle from '@/components/ThemeToggle'
 import ThemeScript from '@/components/ThemeScript'
 import ViewTracker from '@/components/ViewTracker'
-import SocialIcons from '@/components/SocialIcons'
+import ProfileCard from '@/components/site/ProfileCard'
+import NewsletterBox from '@/components/site/NewsletterBox'
+import CategoryTabs from '@/components/site/CategoryTabs'
+import { groupBlocks, blockCategories } from '@/lib/pageBlocks'
 import TextBlock from '@/components/blocks/TextBlock'
 import GalleryBlock from '@/components/blocks/GalleryBlock'
 import SpotifyBlock from '@/components/blocks/SpotifyBlock'
@@ -77,25 +78,26 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
     return true
   })
 
-  // Kategorilere göre grupla
-  const linksByCategory = links.reduce((acc: any, link: any) => {
-    const category = link.category || 'Diğer'
-    if (!acc[category]) {
-      acc[category] = []
-    }
-    acc[category].push(link)
-    return acc
-  }, {})
-
-  const categories = Object.keys(linksByCategory).sort()
-
   const isGrid = profile.layout === 'grid'
+  // İçi boş bloklar (metni olmayan metin, görselsiz galeri, tarihsiz geri sayım...) hiç yer kaplamasın
+  const hasContent = (link: any) => {
+    switch (link.type) {
+      case 'text': return !!(link.title?.trim() || link.description?.trim())
+      case 'gallery': return parseImages(link.images).length > 0
+      case 'spotify': return !!spotifyEmbedUrl(link.url)
+      case 'countdown': return !!link.targetDate
+      default: return true
+    }
+  }
+  const visibleLinks = links.filter(hasContent)
+  const segments = groupBlocks(visibleLinks)
+  const categories = blockCategories(visibleLinks)
+  const showTabs = profile.showCategoryTabs && categories.length >= 2
 
-  // Bento ızgarada tam genişlik kaplayan bloklar (içerik dar kutuya sığmaz)
-  const isWideBlock = (link: any) =>
-    link.featured || ['contact', 'text', 'gallery', 'spotify', 'countdown'].includes(link.type) || link.type?.startsWith('embed-')
+  // "Bana yaz" yalnızca form gerçekten gönderebilecekse görünür
+  const contactReady = !!(profile.contactEmail && profile.smtpHost && profile.smtpUser && profile.smtpPassword)
 
-  const renderBlock = (link: any) => {
+  const renderBlock = (link: any, inRun: boolean) => {
     switch (link.type) {
       case 'text':
         return <TextBlock title={link.title} text={link.description} />
@@ -143,7 +145,7 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
             // Şifreli linklerin gerçek URL'si tarayıcıya gönderilmez; şifre doğrulanınca sunucudan alınır
             url={link.password ? '' : link.url}
             icon={link.icon}
-            iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon)}
+            iconElement={link.icon.startsWith('http') ? undefined : renderLinkIcon(link.icon, 'w-[18px] h-[18px]')}
             linkId={link.id}
             type={link.type}
             hasPassword={!!link.password}
@@ -151,14 +153,23 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
             autoOpen={link.id === autoOpenLinkId}
             featured={link.featured}
             thumbnail={link.thumbnail}
-            variant={isGrid && !isWideBlock(link) ? 'tile' : 'row'}
+            description={link.type === 'contact' ? '' : link.description}
+            variant={isGrid && inRun ? 'tile' : 'row'}
           />
         )
     }
   }
 
+  // Art arda gelen linkler / metinler / proje kartları geniş ekranda yan yana dizilir.
+  // "Bento ızgara" düzeninde linkler telefonda da ikişerli kutu olur.
+  const runClass = (run: string) => {
+    if (run === 'links' && isGrid) return 'grid grid-cols-2 gap-3'
+    if (run === 'cards') return 'grid gap-3 sm:grid-cols-2'
+    return 'grid gap-3 md:grid-cols-[repeat(auto-fit,minmax(15rem,1fr))]'
+  }
+
   return (
-    <main className="min-h-screen relative overflow-hidden">
+    <main className="min-h-screen relative">
       <ThemeScript />
       <ViewTracker />
       <ThemeProvider
@@ -182,76 +193,51 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
         imageUrl={profile.backgroundImage}
         opacity={profile.backgroundOpacity}
       />
-      
-      {/* Theme Toggle */}
+
       <ThemeToggle />
-      
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-16">
-        <div className="w-full max-w-2xl mx-auto">
-          <ProfileSection
-            name={profile.name}
-            bio={profile.bio}
-            imageUrl={profile.imageUrl}
-            verified={profile.verified}
-            badges={profile.badges}
-            coverImage={profile.coverImage}
-          />
 
-          {profile.showSocialIcons && (
-            <SocialIcons
-              linkedinUrl={profile.linkedinUrl}
-              twitterUrl={profile.twitterUrl}
-              discordUrl={profile.discordUrl}
-              youtubeUrl={profile.youtubeUrl}
-              instagramUrl={profile.instagramUrl}
-              githubUrl={profile.githubUrl}
-            />
-          )}
-
-          <div className="mt-8 space-y-4 w-full">
-            {links.length === 0 ? (
-              <p className="text-center text-gray-500 mt-12">
-                Henüz link eklenmemiş
-              </p>
-            ) : (
-              <>
-                {categories.map((category) => (
-                  <div key={category} className="space-y-4">
-                    {/* Kategori Başlığı */}
-                    {category !== 'Diğer' && linksByCategory[category].length > 0 && (
-                      <div className="flex items-center gap-3 mt-8 first:mt-0">
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-current to-transparent text-dynamic-primary opacity-30" />
-                        <h3 className="text-sm font-medium text-dynamic-text opacity-70 uppercase tracking-wider">
-                          {category}
-                        </h3>
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-current to-transparent text-dynamic-primary opacity-30" />
-                      </div>
-                    )}
-                    
-                    {/* Kategori Linkleri */}
-                    <div className={isGrid ? 'grid grid-cols-2 gap-3' : 'space-y-4'}>
-                      {linksByCategory[category].map((link: any) => (
-                        <div key={link.id} className={isGrid && isWideBlock(link) ? 'col-span-2' : undefined}>
-                          {renderBlock(link)}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
+      <div className="relative z-10 mx-auto w-full max-w-[1180px] px-5 sm:px-8 pt-20 pb-10 lg:pt-16">
+        {profile.coverImage && (
+          <div className="w-full aspect-[3/1] lg:aspect-[4/1] rounded-dynamic overflow-hidden border border-dynamic mb-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={profile.coverImage} alt="" className="w-full h-full object-cover" />
           </div>
+        )}
 
-          {/* Action Buttons */}
-          <ActionButtons
-            title={`${profile.name} - Link Tree`}
-            showVCard={profile.showVCard}
-          />
+        <div className={`grid gap-8 lg:gap-x-12 lg:gap-y-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] items-start ${profile.coverImage ? '-mt-14 lg:-mt-16' : ''}`}>
+          <aside className="relative lg:col-start-1 lg:row-start-1 lg:px-0">
+            <ProfileCard profile={profile} showContact={profile.showContactButton && contactReady} />
+          </aside>
 
-          <footer className="mt-16 text-center text-gray-600 text-sm">
-            <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
-          </footer>
+          <section id="page-blocks" aria-label="İçerik" className={`min-w-0 flex flex-col gap-3 lg:col-start-2 lg:row-start-1 lg:row-span-2 ${profile.coverImage ? 'lg:mt-20' : ''}`}>
+            {showTabs && <CategoryTabs categories={categories} targetId="page-blocks" />}
+            {segments.map((segment) =>
+              segment.kind === 'run' ? (
+                <div key={`run-${segment.items[0].id}`} data-run={segment.run} className={runClass(segment.run)}>
+                  {segment.items.map((link) => (
+                    <div key={link.id} data-cat={(link.category || '').trim()}>
+                      {renderBlock(link, true)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div key={segment.item.id} data-cat={(segment.item.category || '').trim()}>
+                  {renderBlock(segment.item, false)}
+                </div>
+              )
+            )}
+          </section>
+
+          {profile.showNewsletter && (
+            <div className="lg:col-start-1 lg:row-start-2">
+              <NewsletterBox />
+            </div>
+          )}
         </div>
+
+        <footer className="mt-14 text-center text-sm text-dynamic-text opacity-50">
+          © {new Date().getFullYear()} {profile.name}
+        </footer>
       </div>
     </main>
   )

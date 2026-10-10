@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import { pick } from '@/lib/security'
-import { PROFILE_EDITABLE_FIELDS, toClientProfile } from '@/lib/profile'
+import { PROFILE_EDITABLE_FIELDS, normalizeProfileCard, toClientProfile } from '@/lib/profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +34,8 @@ export async function PUT(request: Request) {
     if (!data.smtpPassword) delete data.smtpPassword
     if (data.smtpPort !== undefined) data.smtpPort = parseInt(data.smtpPort) || 587
     if (data.backgroundOpacity !== undefined) data.backgroundOpacity = parseInt(data.backgroundOpacity) || 0
+    const invalid = normalizeProfileCard(data)
+    if (invalid) return NextResponse.json(invalid, { status: 400 })
 
     const existing = await prisma.profile.findFirst()
 

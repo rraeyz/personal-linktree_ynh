@@ -2,8 +2,8 @@
 export default function SpotifyBlock({ title, embedUrl }: { title: string; embedUrl: string }) {
   const compact = /\/embed\/(track|episode)\//.test(embedUrl)
   return (
-    <section className="w-full">
-      {title && <h3 className="text-sm font-medium text-dynamic-text opacity-70 mb-2 px-1">{title}</h3>}
+    <section className="site-card w-full p-3 text-dynamic-text">
+      {title && <h3 className="kicker px-1 pt-1 pb-2.5">{title}</h3>}
       <iframe
         src={embedUrl}
         title={title || 'Spotify'}

@@ -70,6 +70,14 @@ export async function GET() {
         instagramUrl: profile.instagramUrl,
         githubUrl: profile.githubUrl,
         showSocialIcons: profile.showSocialIcons,
+        // Profil kartı
+        statusText: profile.statusText,
+        location: profile.location,
+        timezone: profile.timezone,
+        showContactButton: profile.showContactButton,
+        showShareButton: profile.showShareButton,
+        showNewsletter: profile.showNewsletter,
+        showCategoryTabs: profile.showCategoryTabs,
       } : null,
       links: links.map(link => ({
         title: link.title,

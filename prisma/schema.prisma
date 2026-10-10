@@ -39,6 +39,15 @@ model Profile {
   // Sayfa düzeni
   coverImage      String @default("") // Profilin üstündeki kapak görseli
   layout          String @default("classic") // classic (liste) | grid (bento ızgara)
+
+  // Profil kartı (sitede solda / telefonda üstte duran bölüm)
+  statusText        String  @default("") // "Şu an: ..." satırı; boşsa görünmez
+  location          String  @default("") // Şehir/ülke; boşsa görünmez
+  timezone          String  @default("") // IANA saat dilimi (Europe/Istanbul); boşsa yerel saat görünmez
+  showContactButton Boolean @default(true) // "Bana yaz" (iletişim formu); e-posta + SMTP ayarlı değilse zaten gizli
+  showShareButton   Boolean @default(true)
+  showNewsletter    Boolean @default(true) // Bülten abonelik kutusu
+  showCategoryTabs  Boolean @default(true) // Linklerde 2+ kategori varsa üstte sekmeler
   
   // Contact Settings
   contactEmail    String @default("")

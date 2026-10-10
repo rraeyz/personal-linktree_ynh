@@ -25,6 +25,27 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
   const [showVCard, setShowVCard] = useState<boolean>(initialProfile?.showVCard || false)
   const [verified, setVerified] = useState(initialProfile?.verified || false)
   const [badges, setBadges] = useState(initialProfile?.badges || '')
+  // Profil kartı (sitede solda / telefonda üstte)
+  const [statusText, setStatusText] = useState(initialProfile?.statusText || '')
+  const [location, setLocation] = useState(initialProfile?.location || '')
+  const [timezone, setTimezone] = useState(initialProfile?.timezone || '')
+  const [showContactButton, setShowContactButton] = useState<boolean>(initialProfile?.showContactButton ?? true)
+  const [showShareButton, setShowShareButton] = useState<boolean>(initialProfile?.showShareButton ?? true)
+  const [showNewsletter, setShowNewsletter] = useState<boolean>(initialProfile?.showNewsletter ?? true)
+  const [showCategoryTabs, setShowCategoryTabs] = useState<boolean>(initialProfile?.showCategoryTabs ?? true)
+  // Sosyal medya hesapları (sitedeki ikonlar ve e-posta imzası)
+  const [socials, setSocials] = useState({
+    instagramUrl: initialProfile?.instagramUrl || '',
+    twitterUrl: initialProfile?.twitterUrl || '',
+    linkedinUrl: initialProfile?.linkedinUrl || '',
+    youtubeUrl: initialProfile?.youtubeUrl || '',
+    githubUrl: initialProfile?.githubUrl || '',
+    discordUrl: initialProfile?.discordUrl || '',
+  })
+  const [showSocialIcons, setShowSocialIcons] = useState<boolean>(initialProfile?.showSocialIcons ?? true)
+  const [error, setError] = useState('')
+  // "Bana yaz" butonu ancak form gerçekten e-posta gönderebiliyorsa sitede görünür
+  const contactReady = !!(contactEmail && initialProfile?.smtpHost && initialProfile?.smtpUser && initialProfile?.hasSmtpPassword)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
@@ -33,6 +54,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
     e.preventDefault()
     setSaving(true)
     setMessage('')
+    setError('')
 
     try {
       // Profil bilgilerini güncelle
@@ -49,12 +71,22 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           contactAddress,
           showVCard,
           verified,
-          badges
+          badges,
+          statusText,
+          location,
+          timezone,
+          showContactButton,
+          showShareButton,
+          showNewsletter,
+          showCategoryTabs,
+          ...socials,
+          showSocialIcons,
         }),
       })
 
       if (!profileResponse.ok) {
-        throw new Error('Kayıt başarısız')
+        const data = await profileResponse.json().catch(() => ({}))
+        throw new Error(data.error || 'Kayıt başarısız')
       }
 
       // SEO bilgilerini güncelle
@@ -72,8 +104,8 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
       router.refresh()
       
       setTimeout(() => setMessage(''), 3000)
-    } catch (error) {
-      setMessage('Bir hata oluştu')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bir hata oluştu')
     } finally {
       setSaving(false)
     }
@@ -189,6 +221,81 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           <p className="text-xs text-gray-500 mt-2">
             Profil fotoğrafınızın arkasında geniş bir banner olarak görünür • Otomatik olarak 1500x500 boyutuna kırpılır
           </p>
+        </div>
+
+        {/* Profil kartı */}
+        <div className="pt-6 border-t border-gray-700">
+          <h3 className="text-lg font-semibold text-white">Profil kartı</h3>
+          <p className="text-sm text-gray-400 mt-1 mb-4">
+            Sitede solda (telefonda en üstte) duran bölüm. Boş bıraktığın alanlar sitede hiç görünmez.
+          </p>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="statusText" className="block text-sm font-medium text-gray-300 mb-2">Durum</label>
+              <input id="statusText" type="text" maxLength={120} value={statusText} onChange={(e) => setStatusText(e.target.value)} placeholder="ör. Tez üzerinde çalışıyor" className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500" />
+              <p className="text-xs text-gray-500 mt-1">Yanında yeşil nokta ile küçük bir etiket olarak görünür.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-2">Konum</label>
+                <input id="location" type="text" maxLength={80} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="ör. İstanbul" className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500" />
+              </div>
+              <div>
+                <label htmlFor="timezone" className="block text-sm font-medium text-gray-300 mb-2">Yerel saat (saat dilimi)</label>
+                <div className="flex gap-2">
+                  <input id="timezone" type="text" list="timezone-list" value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="ör. Europe/Istanbul" className="flex-1 min-w-0 px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500" />
+                  <button type="button" onClick={() => setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone || '')} className="px-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm text-gray-200 whitespace-nowrap">Bu cihazınki</button>
+                </div>
+                <datalist id="timezone-list">
+                  {['Europe/Istanbul', 'Europe/Berlin', 'Europe/London', 'Europe/Amsterdam', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo', 'UTC'].map((zone) => <option key={zone} value={zone} />)}
+                </datalist>
+                <p className="text-xs text-gray-500 mt-1">Doluysa konumun yanında o saat dilimindeki saat görünür.</p>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              {([
+                [showContactButton, setShowContactButton, '"Bana yaz" butonu', contactReady ? 'Ziyaretçi iletişim formunu açar.' : 'İletişim e-postası ve Ayarlar → SMTP dolmadan sitede görünmez.'],
+                [showShareButton, setShowShareButton, 'Paylaş butonu', 'Sayfa linkini paylaşır ya da kopyalar.'],
+                [showNewsletter, setShowNewsletter, 'Bülten kutusu', 'Ziyaretçiler e-postasıyla abone olur (Aboneler bölümüne düşer).'],
+                [showCategoryTabs, setShowCategoryTabs, 'Kategori sekmeleri', 'Bloklarda en az 2 farklı kategori varsa üstte Tümü / kategori sekmeleri çıkar.'],
+              ] as Array<[boolean, (value: boolean) => void, string, string]>).map(([checked, setChecked, label, hint]) => (
+                <label key={label} className="flex items-start gap-3 p-4 bg-dark-bg border border-gray-700 rounded-xl cursor-pointer">
+                  <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1 w-4 h-4 accent-purple-500" />
+                  <span>
+                    <span className="block text-sm font-medium text-white">{label}</span>
+                    <span className={`block text-xs mt-1 ${label.startsWith('"Bana') && !contactReady ? 'text-amber-400' : 'text-gray-400'}`}>{hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500">&quot;Rehbere ekle&quot; butonu aşağıdaki İletişim Bilgileri bölümünden açılır.</p>
+          </div>
+        </div>
+
+        {/* Sosyal medya hesapları */}
+        <div className="pt-6 border-t border-gray-700">
+          <h3 className="text-lg font-semibold text-white">Sosyal medya hesapları</h3>
+          <p className="text-sm text-gray-400 mt-1 mb-4">Profil kartında ikon olarak ve gönderdiğin e-postaların imzasında görünür. Boş olanlar gösterilmez.</p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {([
+              ['instagramUrl', 'Instagram', 'https://instagram.com/...'],
+              ['twitterUrl', 'X (Twitter)', 'https://x.com/...'],
+              ['linkedinUrl', 'LinkedIn', 'https://linkedin.com/in/...'],
+              ['youtubeUrl', 'YouTube', 'https://youtube.com/@...'],
+              ['githubUrl', 'GitHub', 'https://github.com/...'],
+              ['discordUrl', 'Discord', 'https://discord.gg/...'],
+            ] as Array<[keyof typeof socials, string, string]>).map(([key, label, placeholder]) => (
+              <div key={key}>
+                <label htmlFor={key} className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+                <input id={key} type="url" value={socials[key]} onChange={(e) => setSocials({ ...socials, [key]: e.target.value })} placeholder={placeholder} className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500" />
+              </div>
+            ))}
+          </div>
+          <label className="flex items-center gap-3 mt-4 text-sm text-gray-200 cursor-pointer">
+            <input type="checkbox" checked={showSocialIcons} onChange={(e) => setShowSocialIcons(e.target.checked)} className="w-4 h-4 accent-purple-500" />
+            İkonları sitede göster
+          </label>
         </div>
 
         {/* İletişim Ayarları */}
@@ -405,6 +512,8 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
             </div>
           </div>
         </div>
+
+        {error && <div className="px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-500/50 text-red-400" role="alert">{error}</div>}
 
         {message && (
           <div className={`px-4 py-3 rounded-xl text-sm ${

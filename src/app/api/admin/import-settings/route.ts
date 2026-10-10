@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { normalizeProfileCard } from '@/lib/profile'
 import { isAuthenticated } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -71,6 +72,18 @@ export async function POST(request: NextRequest) {
       instagramUrl: settings.profile.instagramUrl || '',
       githubUrl: settings.profile.githubUrl || '',
       showSocialIcons: settings.profile.showSocialIcons ?? true,
+      // Profil kartı (eski yedeklerde yoksa varsayılanlar)
+      statusText: settings.profile.statusText || '',
+      location: settings.profile.location || '',
+      timezone: settings.profile.timezone || '',
+      showContactButton: settings.profile.showContactButton ?? true,
+      showShareButton: settings.profile.showShareButton ?? true,
+      showNewsletter: settings.profile.showNewsletter ?? true,
+      showCategoryTabs: settings.profile.showCategoryTabs ?? true,
+    }
+    const invalidCard = normalizeProfileCard(profileData)
+    if (invalidCard) {
+      return NextResponse.json(invalidCard, { status: 400 })
     }
 
     if (existingProfile) {

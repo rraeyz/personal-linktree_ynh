@@ -27,24 +27,37 @@ export default function GalleryBlock({ title, images }: { title: string; images:
   }, [open, close, move])
 
   if (images.length === 0) return null
-  const columns = images.length === 1 ? 'grid-cols-1' : images.length === 2 || images.length === 4 ? 'grid-cols-2' : 'grid-cols-3'
+  // En fazla 8 küçük görsel; fazlası son kutuda "+N" olarak görünür, tıklayınca görüntüleyicide gezilir
+  const MAX_THUMBS = 8
+  const shown = images.slice(0, MAX_THUMBS)
+  const hiddenCount = images.length - shown.length
+  const columns = shown.length === 1 ? 'grid-cols-1' : shown.length === 2 ? 'grid-cols-2' : 'grid-cols-3 sm:grid-cols-4'
 
   return (
-    <section className="w-full">
-      {title && <h3 className="text-sm font-medium text-dynamic-text opacity-70 mb-2 px-1">{title}</h3>}
+    <section className="site-card w-full p-3 text-dynamic-text">
+      <div className="flex items-center justify-between gap-3 px-1 pt-1 pb-2.5">
+        <h3 className="kicker">{title || 'Galeri'}</h3>
+        <span className="text-xs opacity-60">{images.length} görsel</span>
+      </div>
       <div className={`grid ${columns} gap-2`}>
-        {images.map((src, index) => (
-          <button
-            key={src + index}
-            type="button"
-            onClick={() => setOpen(index)}
-            className="relative overflow-hidden rounded-dynamic aspect-square bg-dynamic-card focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
-            aria-label={`${title || 'Galeri'} görsel ${index + 1}`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt="" loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-          </button>
-        ))}
+        {shown.map((src, index) => {
+          const isLast = index === shown.length - 1 && hiddenCount > 0
+          return (
+            <button
+              key={src + index}
+              type="button"
+              onClick={() => setOpen(index)}
+              className={`relative overflow-hidden rounded-dynamic ${shown.length === 1 ? 'aspect-video' : 'aspect-square'} bg-dynamic-input focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]`}
+              aria-label={isLast ? `${title || 'Galeri'}: ${hiddenCount + 1} görsel daha` : `${title || 'Galeri'} görsel ${index + 1}`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              {isLast && (
+                <span className="absolute inset-0 bg-black/55 text-white text-lg font-semibold flex items-center justify-center">+{hiddenCount + 1}</span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {mounted && open !== null && createPortal(
