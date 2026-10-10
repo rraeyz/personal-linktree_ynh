@@ -1,3 +1,17 @@
+# 1.4.1
+
+### 💾 Yedekleme (Ayarlar → Yedekleme)
+- **Yedek al:** tür seçilerek indirilir. **Tam yedek** her şeyi içerir: profil, görünüm, bloklar (şifreleriyle), aboneler, analitik, SMTP ve görseller. Bunların yanında **Sayfa ve ayarlar** ile **Yalnızca profil ve görünüm** seçenekleri var.
+- **Yedekten yükle:** dosyanın türü kendiliğinden anlaşılır. Yüklemeden önce yedeğin içeriği ve neyin üzerine yazılacağı gösterilir. Eski "Ayarları dışa aktar" dosyaları da yüklenebilir. Admin hesabı yedeğe girmez ve yüklemede değişmez.
+- Yedekteki görseller yalnızca gerçekten görselse ve uygulamanın verdiği biçimde adlandırılmışsa geri yazılır. Güvensiz link adresleri alınmaz. Geri yükleme tek işlemde yapılır: hata olursa veriler değişmez.
+
+### 🎞 Hareketli GIF
+- Arka plan, kapak, galeri, profil fotoğrafı ve kart görseli olarak yüklenen hareketli GIF'ler artık hareketli kalıyor. Hareketli WebP'ye çevriliyorlar, bu yüzden çok daha küçük oluyorlar. Önceden yalnızca ilk kare kalıyordu.
+
+### 🐞 Düzeltmeler
+- Kapak görseli geniş ekranda yeniden tema köşe yuvarlaklığıyla ve soluk çerçeveyle görünüyor. 1.3.1'de köşeler keskinleşmiş, çerçeve açık gri olmuştu.
+- Sosyal ikonlar, tema düğmesi ve şifre kutusundaki "üzerine gelince / odaklanınca tema rengi çerçeve" etkisi artık çalışıyor.
+
 # 1.4.0
 
 ### 🏷 Yeni ad: Künye

@@ -59,6 +59,12 @@ body {
   border-color: var(--color-primary);
 }
 
+/* Bunlar düz CSS sınıfı olduğu için Tailwind "hover:" / "focus:" önekli hâllerini üretmez; elle tanımlı */
+.hover\:border-dynamic-primary:hover,
+.focus\:border-dynamic-primary:focus {
+  border-color: var(--color-primary);
+}
+
 .gradient-primary-accent {
   background: linear-gradient(to right, var(--color-primary), var(--color-accent));
 }
@@ -132,6 +138,15 @@ body {
 /* Tema editöründeki "Köşe Yuvarlaklığı" (ThemeProvider --border-radius'u ayarlar) */
 .rounded-dynamic {
   border-radius: var(--border-radius);
+}
+
+/* Kapak görseli: telefonda kenardan kenara (köşesiz); geniş ekranda tema köşesi ve çerçevesiyle.
+   rounded-dynamic / border-dynamic düz CSS sınıfı olduğu için "lg:" önekiyle kullanılamaz. */
+@media (min-width: 1024px) {
+  .cover-banner {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-border);
+  }
 }
 
 /* Öne çıkan link: tema renkleriyle akan gradient çerçeve */

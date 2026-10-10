@@ -61,7 +61,7 @@ Uygulama kimliği `kunye`dir (komutlarda ve klasör adlarında geçer); kurulum 
 
 #### Eski "Personal Linktree" (`personal_linktree`) kurulumundan geçiş
 
-Kimlik değiştiği için yeni kurulum eski verileri kendiliğinden görmez. Veritabanını (profil, linkler, aboneler,
+Kimlik değiştiği için yeni kurulum eski verileri kendiliğinden görmez. (Bundan sonraki taşımalarda en kolayı: eski sitede **Ayarlar → Yedekleme → Tam yedek**, yeni sitede **Yedekten yükle**. Eski Personal Linktree sürümlerinde bu düğme olmadığı için ilk geçişte aşağıdaki komutları kullanın.) Veritabanını (profil, linkler, aboneler,
 analitik, admin hesabı), görselleri ve `.env`'i (oturum anahtarı) olduğu gibi taşımak için:
 
 ```bash

@@ -21,10 +21,10 @@ Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası
 - Genel Bakış: son 7/30 günün özeti, en çok tıklananlar, site durumu (son yedek, e-posta ayarı, zamanlanmış linkler)
 - Profil, linkler ve bloklar (sürükle-bırak sıralama, satır içi düzenleme), tema ve düzen, QR kod
 - Canlı önizleme: telefon çerçevesinde site, her kayıttan sonra kendiliğinden yenilenir
-- Görsel yükleme: otomatik boyutlandırma, EXIF/konum bilgisi silinir
+- Görsel yükleme: otomatik boyutlandırma, EXIF/konum bilgisi silinir, hareketli GIF desteği
 - Analitik: profil görüntülenme, tekil ziyaretçi, etkileşim oranı, tıklamalar, cihaz/tarayıcı/ülke, trafik kaynakları, UTM kampanyaları, CSV dışa aktarma, saklama süresi
 - E-posta: canlı önizleme, birden fazla alıcı veya tüm abonelere gönderim (kişiye özel "abonelikten çık" linki), kendine test, taslak kaydı, e-posta imzası
-- Ayarlar: SMTP, şifre değiştirme, tüm cihazlardan çıkış, ayarları dışa/içe aktarma
+- Ayarlar: SMTP, şifre değiştirme, tüm cihazlardan çıkış, yedekleme (tam yedek / sayfa ve ayarlar / yalnızca profil; yedekten yüklemede tür kendiliğinden anlaşılır)
 
 **Güvenlik**
 - Admin şifresi bcrypt ile saklanır; şifre değişince tüm oturumlar kapanır

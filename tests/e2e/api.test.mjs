@@ -12,6 +12,7 @@ const ip = (n) => ({ 'x-real-ip': `203.0.113.${n}` })
 
 // 1x1 PNG (yükleme testi için)
 const PNG_1PX = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==', 'base64')
+const ANIMATED_GIF = Buffer.from('R0lGODlhKAAeAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQAFAAAACH/C0ltYWdlTWFnaWNrDmdhbW1hPTAuNDU0NTQ1ACwAAAAAKAAeAAACIYSPqcvtD6OctNqLs968+w+G4kiW5omm6sq27gvH8kxzBQAh+QQAFAAAACH/C0ltYWdlTWFnaWNrDmdhbW1hPTAuNDU0NTQ1ACwAAAAAKAAeAIAA/wAAAAACIYSPqcvtD6OctNqLs968+w+G4kiW5omm6sq27gvH8kxzBQAh+QQAFAAAACH/C0ltYWdlTWFnaWNrDmdhbW1hPTAuNDU0NTQ1ACwAAAAAKAAeAIAAAP8AAAACIYSPqcvtD6OctNqLs968+w+G4kiW5omm6sq27gvH8kxzBQA7', 'base64')
 
 async function req(path, { method = 'GET', body, cookie, headers = {}, json = true } = {}) {
   const init = { method, redirect: 'manual', headers: { ...headers } }
@@ -62,7 +63,7 @@ test('kurulum ikinci kez çalıştırılamaz', async () => {
 })
 
 test('admin verileri girişsiz okunamaz/değiştirilemez', async () => {
-  for (const path of ['/api/profile', '/api/links', '/api/subscribers', '/api/analytics', '/api/admin/overview', '/api/admin/export-settings']) {
+  for (const path of ['/api/profile', '/api/links', '/api/subscribers', '/api/analytics', '/api/admin/overview', '/api/admin/backup']) {
     assert.equal((await req(path)).status, 401, path)
   }
   assert.equal((await req('/api/theme', { method: 'PUT', body: {} })).status, 401)
@@ -125,6 +126,15 @@ test('görsel yükleme ve /media', async () => {
   assert.equal(media.status, 200)
   assert.equal(media.headers.get('content-type'), 'image/webp')
   assert.equal((await req('/media/..%2Fprisma%2Fdev.db')).status, 404)
+
+  // Hareketli GIF (3 kare) arka plan olarak yüklenince hareketli WebP olur (ANIM bölümü)
+  const gif = new FormData()
+  gif.append('kind', 'background'); gif.append('file', new Blob([ANIMATED_GIF], { type: 'image/gif' }), 'a.gif')
+  const gifUpload = await req('/api/admin/upload', { method: 'POST', cookie: admin, body: gif })
+  assert.equal(gifUpload.status, 200, JSON.stringify(gifUpload.data))
+  const gifMedia = Buffer.from(await (await fetch(B + gifUpload.data.url)).arrayBuffer())
+  assert.equal(gifMedia.subarray(8, 12).toString(), 'WEBP')
+  assert.ok(gifMedia.includes(Buffer.from('ANIM')), 'animasyon korunmalı')
 })
 
 test('güvenlik başlıkları, CSRF ve kapalı görsel proxy', async () => {
@@ -262,6 +272,92 @@ test('e-posta gönder: doğrulama ve önizleme (imza profilden)', async () => {
   assert.ok(preview.data.html.includes('Örnek Şirket'))
   assert.ok(preview.data.html.includes('Abonelikten'), 'abonelere giden e-postada çıkış linki')
   assert.equal(preview.data.smtpConfigured, false)
+})
+
+test('yedekleme: yedek alma, geri yükleme, otomatik tür algılama', async () => {
+  const backup = (kind, cookie = admin) => req(`/api/admin/backup?kind=${kind}`, { cookie })
+  const restore = (body) => req('/api/admin/backup', { method: 'POST', cookie: admin, body })
+  assert.equal((await backup('full', '')).status, 401)
+  assert.equal((await req('/api/admin/backup', { method: 'POST', body: {} })).status, 401)
+  assert.equal((await backup('bogus')).status, 400)
+
+  await req('/api/subscribe', { method: 'POST', body: { email: 'yedek@example.com' }, headers: ip(60) })
+  const fullRes = await backup('full')
+  assert.equal(fullRes.status, 200)
+  assert.match(fullRes.headers.get('content-disposition') || '', /attachment; filename="kunye-full-/)
+  const full = fullRes.data
+  assert.equal(full.format, 'kunye-backup')
+  assert.equal(full.kind, 'full')
+  assert.ok(full.links.length > 0 && full.links.every((link) => link.id), 'bloklar kimlikleriyle yedeklenmeli')
+  assert.ok(full.links.some((link) => link.password), 'tam yedek link şifre özetlerini içermeli')
+  assert.ok(full.subscribers.some((s) => s.email === 'yedek@example.com'))
+  assert.ok(Array.isArray(full.analytics) && Array.isArray(full.pageViews))
+  assert.ok(Object.keys(full.files).length > 0, 'yüklenen görseller tam yedekte olmalı')
+  assert.ok(!JSON.stringify(full).includes('passwordHash'), 'admin hesabı yedeğe girmemeli')
+
+  const settings = (await backup('settings')).data
+  assert.equal(settings.kind, 'settings')
+  assert.equal(settings.subscribers, undefined)
+  assert.ok(settings.links.every((link) => link.password === undefined))
+  const profileOnly = (await backup('profile')).data
+  assert.equal(profileOnly.links, undefined)
+  assert.equal(profileOnly.profile.smtpHost, undefined, 'profil yedeği SMTP içermemeli')
+
+  // Değişiklik yap, sonra tam yedekten dön: her şey yedekteki hâline gelir, admin oturumu sürer
+  await req('/api/profile', { method: 'PUT', cookie: admin, body: { name: 'Değişti' } })
+  await req('/api/links', { method: 'POST', cookie: admin, body: { title: 'Yedekte yok', url: 'https://example.org/' } })
+  const restored = await restore(full)
+  assert.equal(restored.status, 200, JSON.stringify(restored.data))
+  assert.equal(restored.data.kind, 'full')
+  assert.equal(restored.data.links, full.links.length)
+  assert.equal((await req('/api/profile', { cookie: admin })).data.name, full.profile.name)
+  const linksAfter = (await req('/api/links', { cookie: admin })).data
+  assert.deepEqual(linksAfter.map((link) => link.id).sort(), full.links.map((link) => link.id).sort())
+  assert.ok((await req('/api/subscribers', { cookie: admin })).data.some((s) => s.email === 'yedek@example.com'))
+
+  // Profil yedeği yalnızca profili değiştirir
+  await req('/api/profile', { method: 'PUT', cookie: admin, body: { name: 'Profil testi' } })
+  assert.equal((await restore(profileOnly)).data.kind, 'profile')
+  assert.equal((await req('/api/profile', { cookie: admin })).data.name, full.profile.name)
+  assert.equal((await req('/api/links', { cookie: admin })).data.length, full.links.length)
+
+  // "Sayfa ve ayarlar": aynı kimlikli bloklar güncellenir, şifreleri korunur, yedekte olmayan blok silinir
+  await req('/api/links', { method: 'POST', cookie: admin, body: { title: 'Ayar yedeğinde yok', url: 'https://example.org/x' } })
+  const settingsRes = await restore(settings)
+  assert.equal(settingsRes.status, 200, JSON.stringify(settingsRes.data))
+  const afterSettings = (await req('/api/links', { cookie: admin })).data
+  assert.deepEqual(afterSettings.map((link) => link.id).sort(), full.links.map((link) => link.id).sort())
+  assert.ok(afterSettings.some((link) => link.password), 'ayar yedeği yüklenince mevcut link şifreleri korunmalı')
+
+  // Eski "Ayarları dışa aktar" dosyası tanınır; güvensiz adresler alınmaz
+  const legacy = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    profile: { ...full.profile },
+    links: [{ title: 'Eski', url: 'https://example.com/eski', type: 'link' }, { title: 'Kötü', url: 'javascript:alert(1)', type: 'link' }],
+  }
+  const legacyRes = await restore(legacy)
+  assert.equal(legacyRes.status, 200, JSON.stringify(legacyRes.data))
+  assert.equal(legacyRes.data.legacy, true)
+  assert.equal(legacyRes.data.kind, 'settings')
+  const legacyLinks = (await req('/api/links', { cookie: admin })).data
+  assert.equal(legacyLinks.length, 2)
+  assert.equal(legacyLinks.find((link) => link.title === 'Kötü').url, '')
+
+  // Görseller: yalnızca bizim adlandırdığımız ve gerçekten o türde olan dosyalar yazılır
+  const goodName = 'avatar-00000000-0000-4000-8000-000000000001.png'
+  const fakeName = 'avatar-00000000-0000-4000-8000-000000000002.webp'
+  await restore({ ...profileOnly, files: { [goodName]: Buffer.from(PNG_1PX).toString('base64'), [fakeName]: Buffer.from('<script>alert(1)</script>').toString('base64'), '../x.png': 'AAAA' } })
+  assert.equal((await req(`/media/${goodName}`, { json: false })).status, 200)
+  assert.equal((await req(`/media/${fakeName}`, { json: false })).status, 404)
+
+  // Yedek olmayan / daha yeni sürüm dosyaları reddedilir, hiçbir şey değişmez
+  assert.equal((await restore({ foo: 1 })).status, 400)
+  assert.equal((await restore({ format: 'kunye-backup', formatVersion: 99, kind: 'full', profile: {} })).status, 400)
+
+  // Sonraki testler için tam yedekten geri dön
+  assert.equal((await restore(full)).status, 200)
+  assert.equal((await req('/api/links', { cookie: admin })).data.length, full.links.length)
 })
 
 test('link önizleme: yetki ve SSRF koruması', async () => {

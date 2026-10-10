@@ -8,6 +8,7 @@ import sharp from 'sharp'
 export const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public', 'uploads')
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB (yükleme sonrası zaten küçültülüyor)
+const MAX_ANIMATION_FRAMES = 500
 
 type UploadKind = 'avatar' | 'favicon' | 'og' | 'background' | 'icon' | 'cover' | 'thumb' | 'gallery'
 
@@ -56,8 +57,16 @@ export async function saveUploadedImage(buffer: Buffer, kind: UploadKind): Promi
   }
 
   const preset = PRESETS[kind]
-  // rotate(): telefon fotoğraflarındaki EXIF yönünü uygular; animated GIF'in ilk karesi kullanılır
-  const output = await preset.process(sharp(buffer, { animated: false }).rotate()).toBuffer()
+  // Hareketli GIF/WebP: WebP'ye kaydedilen türlerde (arka plan, kapak, galeri, profil fotoğrafı, kart görseli)
+  // animasyon korunur ve hareketli WebP olur (GIF'ten çok daha küçük). Diğerlerinde ilk kare kullanılır.
+  const frames = metadata.pages || 1
+  const animated = frames > 1 && preset.ext === 'webp'
+  if (animated && (frames > MAX_ANIMATION_FRAMES || (metadata.width || 0) * (metadata.height || 0) * frames > 400_000_000)) {
+    throw new UploadError(`Animasyon çok büyük (en fazla ${MAX_ANIMATION_FRAMES} kare). Daha kısa veya küçük bir GIF deneyin.`)
+  }
+  // rotate(): telefon fotoğraflarındaki EXIF yönünü uygular (hareketli görsellerde EXIF yok)
+  const input = animated ? sharp(buffer, { animated: true }) : sharp(buffer, { animated: false }).rotate()
+  const output = await preset.process(input).toBuffer()
 
   await fs.mkdir(UPLOAD_DIR, { recursive: true })
   const fileName = `${kind}-${crypto.randomUUID()}.${preset.ext}`
@@ -68,7 +77,7 @@ export async function saveUploadedImage(buffer: Buffer, kind: UploadKind): Promi
 
 export class UploadError extends Error {}
 
-const FILE_NAME_PATTERN = /^(avatar|favicon|og|background|icon|cover|thumb|gallery)-[0-9a-f-]{36}\.(webp|png|jpg)$/
+export const FILE_NAME_PATTERN = /^(avatar|favicon|og|background|icon|cover|thumb|gallery)-[0-9a-f-]{36}\.(webp|png|jpg)$/
 
 const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',

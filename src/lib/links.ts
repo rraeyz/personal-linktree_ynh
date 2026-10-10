@@ -34,7 +34,7 @@ export function spotifyEmbedUrl(url: string): string | null {
 }
 
 // Görsel adresi: sadece yüklenen dosyalar (/media/...) veya http(s)
-function isImageUrl(value: unknown): value is string {
+export function isImageUrl(value: unknown): value is string {
   return typeof value === 'string' && (/^\/media\/[a-z]+-[0-9a-f-]{36}\.(webp|png|jpg)$/.test(value) || isSafeUrl(value))
 }
 
@@ -47,14 +47,14 @@ export function parseImages(value: string): string[] {
   }
 }
 
-function parseDate(value: unknown): Date | null | undefined {
+export function parseDate(value: unknown): Date | null | undefined {
   if (value === undefined) return undefined
   if (value === null || value === '') return null
   const date = new Date(value as string)
   return isNaN(date.getTime()) ? null : date
 }
 
-function normalizeSlug(value: unknown): string {
+export function normalizeSlug(value: unknown): string {
   return String(value || '')
     .trim()
     .replace(/[^a-zA-Z0-9_-]/g, '')

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FaKey, FaCog, FaFileExport, FaFileImport, FaSave, FaTrash, FaChartLine, FaEnvelope } from 'react-icons/fa'
+import BackupPanel from './BackupPanel'
+import { FaKey, FaSave, FaTrash, FaChartLine, FaEnvelope } from 'react-icons/fa'
 
 export default function SettingsPanel() {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -105,52 +106,6 @@ export default function SettingsPanel() {
       setMessage('Bir hata oluştu')
     } finally {
       setSaving(false)
-    }
-  }
-
-  const handleExportSettings = async () => {
-    try {
-      const response = await fetch('/api/admin/export-settings')
-      const data = await response.json()
-
-      if (response.ok) {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `linktree-settings-${new Date().toISOString().split('T')[0]}.json`
-        link.click()
-        setMessage('Ayarlar dışa aktarıldı!')
-      } else {
-        setMessage('Dışa aktarma başarısız')
-      }
-    } catch (error) {
-      setMessage('Bir hata oluştu')
-    }
-  }
-
-  const handleImportSettings = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    try {
-      const text = await file.text()
-      const settings = JSON.parse(text)
-
-      const response = await fetch('/api/admin/import-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      })
-
-      if (response.ok) {
-        setMessage('Ayarlar başarıyla içe aktarıldı!')
-        setTimeout(() => router.refresh(), 1000)
-      } else {
-        setMessage('İçe aktarma başarısız')
-      }
-    } catch (error) {
-      setMessage('Geçersiz dosya formatı')
     }
   }
 
@@ -358,57 +313,7 @@ export default function SettingsPanel() {
         </div>
       </div>
 
-      {/* Import/Export Settings */}
-      <div className="bg-dark-card border border-gray-800 rounded-2xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <FaCog className="w-5 h-5 text-purple-400" />
-          <h2 className="text-xl font-bold text-white">Ayarları Yönet</h2>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3">
-              Tüm Ayarları Yedekle
-            </h3>
-            <p className="text-sm text-gray-400 mb-4">
-              Profil, linkler, temalar ve diğer tüm ayarlarınızı JSON dosyası olarak kaydedin.
-            </p>
-            <button
-              onClick={handleExportSettings}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-colors border border-blue-500/30"
-            >
-              <FaFileExport className="w-4 h-4" />
-              <span>Ayarları Dışa Aktar (.json)</span>
-            </button>
-          </div>
-
-          <div className="pt-4 border-t border-gray-700">
-            <h3 className="text-sm font-medium text-gray-300 mb-3">
-              Yedekten Geri Yükle
-            </h3>
-            <p className="text-sm text-gray-400 mb-4">
-              Daha önce dışa aktardığınız ayarları içe aktararak tüm yapılandırmanızı geri yükleyin.
-            </p>
-            <label className="flex items-center gap-2 px-4 py-3 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-xl transition-colors border border-green-500/30 cursor-pointer">
-              <FaFileImport className="w-4 h-4" />
-              <span>Ayarları İçe Aktar (.json)</span>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImportSettings}
-                className="hidden"
-              />
-            </label>
-          </div>
-
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mt-4">
-            <p className="text-sm text-yellow-400">
-              ⚠️ <strong>Uyarı:</strong> İçe aktarma işlemi mevcut ayarlarınızın <strong>üzerine yazacaktır</strong>. 
-              İşlemden önce mevcut ayarlarınızı dışa aktararak yedeklemeniz önerilir.
-            </p>
-          </div>
-        </div>
-      </div>
+      <BackupPanel />
 
       {/* Analytics Settings */}
       <div className="bg-dark-card border border-gray-800 rounded-2xl p-8">

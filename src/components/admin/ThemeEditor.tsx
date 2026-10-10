@@ -394,6 +394,9 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
                 placeholder="https://example.com/background.jpg"
                 className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                JPG, PNG, WEBP veya GIF yükleyebilirsiniz; hareketli GIF&apos;ler hareketli kalır (daha küçük boyutlu WebP&apos;ye çevrilir).
+              </p>
             </div>
             
             <div>
