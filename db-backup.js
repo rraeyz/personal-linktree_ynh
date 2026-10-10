@@ -38,6 +38,11 @@ db.backup(tmp)
     if (result !== 'ok') throw new Error(`integrity_check: ${result}`)
     fs.renameSync(tmp, target)
     console.log(`✅ Yedek alındı: ${target}`)
+    // Admin panelindeki "Site durumu" kartı son yedeğin zamanını buradan okur.
+    // Yazılamasa da yedek geçerlidir; bu yüzden hata yutulur.
+    try {
+      fs.writeFileSync(path.join(path.dirname(source), '.last-backup'), JSON.stringify({ at: new Date().toISOString() }))
+    } catch {}
   })
   .catch((error) => {
     try { fs.unlinkSync(tmp) } catch {}
