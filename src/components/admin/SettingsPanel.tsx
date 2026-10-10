@@ -435,7 +435,7 @@ export default function SettingsPanel() {
       <div className="bg-dark-card border border-gray-800 rounded-2xl p-8">
         <div className="flex items-center gap-3 mb-6">
           <FaChartLine className="w-5 h-5 text-blue-400" />
-          <h2 className="text-xl font-bold text-white">Analytics Ayarları</h2>
+          <h2 className="text-xl font-bold text-white">Analitik Ayarları</h2>
         </div>
 
         <div className="space-y-6">
@@ -473,7 +473,7 @@ export default function SettingsPanel() {
               className="flex items-center gap-2 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors border border-red-500/30"
             >
               <FaTrash className="w-4 h-4" />
-              <span>Tüm Analytics Verilerini Sil</span>
+              <span>Tüm Analitik Verilerini Sil</span>
             </button>
           </div>
 

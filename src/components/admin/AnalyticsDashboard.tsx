@@ -137,7 +137,7 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
               <FaInfoCircle className="w-5 h-5 text-yellow-400" />
             </div>
             <div>
-              <h4 className="text-yellow-400 font-semibold mb-1">Analytics Verisi Bulunamadı</h4>
+              <h4 className="text-yellow-400 font-semibold mb-1">Analitik Verisi Bulunamadı</h4>
               <p className="text-sm text-gray-300">
                 Henüz detaylı analytics verisi toplanmamış. Linklere tıklanmaya başlandıkça konum, cihaz ve tarayıcı bilgileri burada görünecek.
               </p>
@@ -154,9 +154,9 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <FaChartLine className="text-purple-400" />
-            Analytics Dashboard
+            Link Performansı
           </h2>
-          <p className="text-gray-400 mt-1">Link performansınızı takip edin</p>
+          <p className="text-gray-400 mt-1">Tıklamalar, ziyaretçiler ve trafik kaynakları</p>
         </div>
         
         {/* Time Range Selector */}
