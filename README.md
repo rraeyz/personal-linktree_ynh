@@ -18,7 +18,9 @@ Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası
 - SEO: başlık/açıklama, Open Graph görseli, favicon, `robots.txt`, `sitemap.xml`
 
 **Admin paneli** (`/admin`)
-- Profil, linkler ve bloklar (sürükle-bırak sıralama), tema ve düzen, QR kod
+- Sol menülü düzen; telefonda alt menü. Ctrl/⌘+K ile bölümler ve işlemler arasında arama
+- Genel Bakış: son 7/30 günün özeti, en çok tıklananlar, site durumu (son yedek, e-posta ayarı, zamanlanmış linkler)
+- Profil, linkler ve bloklar (sürükle-bırak sıralama, satır içi düzenleme), tema ve düzen, QR kod
 - Canlı önizleme: telefon çerçevesinde site, her kayıttan sonra kendiliğinden yenilenir
 - Görsel yükleme: otomatik boyutlandırma, EXIF/konum bilgisi silinir
 - Analitik: profil görüntülenme, tekil ziyaretçi, etkileşim oranı, tıklamalar, cihaz/tarayıcı/ülke, trafik kaynakları, UTM kampanyaları, CSV dışa aktarma, saklama süresi

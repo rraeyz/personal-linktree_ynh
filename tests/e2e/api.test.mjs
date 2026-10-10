@@ -51,7 +51,7 @@ test('kurulum ikinci kez çalıştırılamaz', async () => {
 })
 
 test('admin verileri girişsiz okunamaz/değiştirilemez', async () => {
-  for (const path of ['/api/profile', '/api/links', '/api/subscribers', '/api/analytics', '/api/admin/export-settings']) {
+  for (const path of ['/api/profile', '/api/links', '/api/subscribers', '/api/analytics', '/api/admin/overview', '/api/admin/export-settings']) {
     assert.equal((await req(path)).status, 401, path)
   }
   assert.equal((await req('/api/theme', { method: 'PUT', body: {} })).status, 401)
@@ -133,6 +133,32 @@ test('herkese açık uç noktalar', async () => {
   assert.equal((await req('/api/subscribe', { method: 'POST', body: { email: 'okur@example.com' }, headers: ip(30) })).data.success, true)
   assert.equal((await req('/api/unsubscribe?e=okur%40example.com&t=yanlis', { method: 'POST' })).status, 400)
   assert.deepEqual((await req('/api/views', { method: 'POST', body: {}, headers: { 'user-agent': 'curl/8' } })).data, { recorded: false })
+})
+
+test('admin genel bakış özeti', async () => {
+  const browserUA = { 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36', ...ip(60) }
+  assert.deepEqual((await req('/api/views', { method: 'POST', body: {}, headers: browserUA })).data, { recorded: true })
+  const future = new Date(Date.now() + 3 * 86400e3).toISOString()
+  assert.equal((await req('/api/links', { method: 'POST', cookie: admin, body: { title: 'Yakında', url: 'https://example.com/soon', startDate: future } })).status, 200)
+
+  const week = await req('/api/admin/overview', { cookie: admin })
+  assert.equal(week.status, 200)
+  assert.equal(week.data.range, 7)
+  assert.equal(week.data.days.length, 7)
+  assert.ok(week.data.kpis.views.value >= 1, 'görüntülenme sayılmalı')
+  assert.ok(week.data.kpis.visitors.value >= 1)
+  assert.equal(week.data.kpis.views.series.length, 7)
+  assert.equal(week.data.kpis.views.series.reduce((a, b) => a + b, 0), week.data.kpis.views.value, 'seri toplamı değere eşit olmalı')
+  assert.ok(week.data.kpis.subscribers.total >= 1, 'abone sayılmalı')
+  assert.ok(week.data.status.upcoming >= 1)
+  assert.equal(week.data.status.nextUpcoming.title, 'Yakında')
+  assert.equal(typeof week.data.status.smtpConfigured, 'boolean')
+  assert.match(week.data.status.version, /^\d+\.\d+\.\d+/)
+  assert.ok(Array.isArray(week.data.topLinks))
+
+  const month = await req('/api/admin/overview?range=30d', { cookie: admin })
+  assert.equal(month.data.range, 30)
+  assert.equal(month.data.kpis.clicks.series.length, 30)
 })
 
 test('blok tipleri, düzen ve öne çıkan link', async () => {
