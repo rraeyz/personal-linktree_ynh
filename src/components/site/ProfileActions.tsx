@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useCallback, useState } from 'react'
 import { FaEnvelope, FaShareAlt, FaAddressCard, FaCheck } from 'react-icons/fa'
-import ContactForm from '../ContactForm'
+import ContactModal from './ContactModal'
 
 interface ProfileActionsProps {
   shareTitle: string
@@ -16,15 +15,7 @@ interface ProfileActionsProps {
 export default function ProfileActions({ shareTitle, showContact, showShare, showVCard }: ProfileActionsProps) {
   const [contactOpen, setContactOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
-  useEffect(() => {
-    if (!contactOpen) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setContactOpen(false) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [contactOpen])
+  const closeContact = useCallback(() => setContactOpen(false), [])
 
   if (!showContact && !showShare && !showVCard) return null
 
@@ -76,14 +67,7 @@ export default function ProfileActions({ shareTitle, showContact, showShare, sho
         </a>
       )}
 
-      {mounted && contactOpen && createPortal(
-        <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setContactOpen(false)}>
-          <div role="dialog" aria-modal="true" aria-label="Bana yaz" className="w-full sm:max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <ContactForm onClose={() => setContactOpen(false)} />
-          </div>
-        </div>,
-        document.body
-      )}
+      {showContact && <ContactModal open={contactOpen} onClose={closeContact} />}
     </div>
   )
 }

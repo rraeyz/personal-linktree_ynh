@@ -63,7 +63,9 @@ export default function ContactForm({ onClose }: ContactFormProps) {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-dynamic-text">Bana Ulaşın</h3>
             <button
+              type="button"
               onClick={onClose}
+              aria-label="Kapat"
               className="p-2 hover-dynamic rounded-lg transition-colors"
             >
               <FaTimes className="w-4 h-4 text-gray-400" />

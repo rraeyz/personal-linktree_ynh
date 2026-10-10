@@ -164,8 +164,9 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
   // "Bento ızgara" düzeninde linkler telefonda da ikişerli kutu olur.
   const runClass = (run: string) => {
     if (run === 'links' && isGrid) return 'grid grid-cols-2 gap-3'
-    if (run === 'cards') return 'grid gap-3 sm:grid-cols-2'
-    return 'grid gap-3 md:grid-cols-[repeat(auto-fit,minmax(15rem,1fr))]'
+    // grid-cols-1 (minmax(0,1fr)): dar ekranda sütun ekran genişliğini aşamaz
+    if (run === 'cards') return 'grid grid-cols-1 gap-3 sm:grid-cols-2'
+    return 'grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fit,minmax(15rem,1fr))]'
   }
 
   return (
@@ -196,16 +197,21 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
 
       <ThemeToggle />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1180px] px-5 sm:px-8 pt-20 pb-10 lg:pt-16">
+      {/* min-h-screen + flex: içerik kısa olsa da © satırı ekranın en altında durur */}
+      <div className="relative z-10 mx-auto w-full max-w-[1180px] min-h-screen flex flex-col px-5 sm:px-8 pt-20 pb-10 lg:pt-16">
+        <div className="flex-1">
         {profile.coverImage && (
-          <div className="w-full aspect-[3/1] lg:aspect-[4/1] rounded-dynamic overflow-hidden border border-dynamic mb-0">
+          // Telefon/tablet: kenardan kenara, sayfanın en üstünde, alt kenarı arka plana yumuşakça karışır.
+          // Geniş ekran (lg): içerik genişliğinde, yuvarlak köşeli banner.
+          <div className="relative -mx-5 sm:-mx-8 -mt-20 lg:mx-0 lg:mt-0 aspect-[16/9] sm:aspect-[5/2] lg:aspect-[4/1] overflow-hidden lg:rounded-dynamic lg:border lg:border-dynamic">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={profile.coverImage} alt="" className="w-full h-full object-cover" />
+            <div aria-hidden="true" className="lg:hidden absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[color:var(--color-background)]" />
           </div>
         )}
 
-        <div className={`grid gap-8 lg:gap-x-12 lg:gap-y-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] items-start ${profile.coverImage ? '-mt-14 lg:-mt-16' : ''}`}>
-          <aside className="relative lg:col-start-1 lg:row-start-1 lg:px-0">
+        <div className={`grid grid-cols-1 gap-8 lg:gap-x-12 lg:gap-y-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] items-start ${profile.coverImage ? '-mt-14 lg:-mt-16' : ''}`}>
+          <aside className="relative min-w-0 lg:col-start-1 lg:row-start-1 lg:px-0">
             <ProfileCard profile={profile} showContact={profile.showContactButton && contactReady} />
           </aside>
 
@@ -229,10 +235,11 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
           </section>
 
           {profile.showNewsletter && (
-            <div className="lg:col-start-1 lg:row-start-2">
+            <div className="min-w-0 lg:col-start-1 lg:row-start-2">
               <NewsletterBox />
             </div>
           )}
+        </div>
         </div>
 
         <footer className="mt-14 text-center text-sm text-dynamic-text opacity-50">

@@ -1,5 +1,5 @@
 // Tarayıcı duman testi: ana sayfa (açık/koyu mod), mod geçişi, admin panelinin tüm bölümleri,
-// komut paleti, blok ekleme/düzenleme ve telefon görünümü.
+// komut paleti, blok ekleme/düzenleme, telefon görünümü ve 320px'ten geniş ekrana taşma kontrolü.
 // api.test.mjs'den SONRA çalıştırılmalı (kurulu site ve ADMIN_PASSWORD gerekir).
 // Kullanım: BASE_URL=http://localhost:3000 ADMIN_PASSWORD=... node tests/e2e/browser.mjs
 import { chromium } from 'playwright'
@@ -58,9 +58,40 @@ const login = async (page) => {
   await Promise.all([page.waitForURL('**/admin/dashboard', { timeout: 15000 }), page.click('button[type="submit"]')])
 }
 const heading = (page, name) => page.getByRole('heading', { level: 1, name, exact: true }).waitFor({ timeout: 10000 })
+// Ekrandan taşan öğe var mı? overflow-x: clip taşmayı gizlediği için scrollWidth tek başına yetmez;
+// öğeler tek tek ölçülür (kendi kaydırılabilir/kırpılan kutusu içindekiler ve sabit konumlular hariç).
 const noHorizontalScroll = async (page, tag) => {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-  if (overflow > 1) problems.push(`${tag}: sayfa ${overflow}px yatay taşıyor`)
+  const result = await page.evaluate(() => {
+    const width = document.documentElement.clientWidth
+    const clipped = (element) => {
+      for (let node = element.parentElement; node && node !== document.body; node = node.parentElement) {
+        const style = getComputedStyle(node)
+        if (style.position === 'fixed' || /(auto|scroll|hidden|clip)/.test(style.overflowX)) return true
+      }
+      return false
+    }
+    const offenders = [...document.querySelectorAll('body *')]
+      .filter((element) => !element.closest('svg, .stars-bg, [data-overflow-ok]') && getComputedStyle(element).position !== 'fixed' && element.getClientRects().length && !clipped(element))
+      .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.width > 0 && (rect.right > width + 1 || rect.left < -1))
+      .slice(0, 3)
+      .map(({ element, rect }) => `<${element.tagName.toLowerCase()} class="${String(element.className).slice(0, 50)}"> ${Math.round(rect.left)}..${Math.round(rect.right)}px`)
+    return { scroll: document.documentElement.scrollWidth - window.innerWidth, width, offenders }
+  })
+  if (result.scroll > 1) problems.push(`${tag}: sayfa ${result.scroll}px yatay taşıyor`)
+  if (result.offenders.length) problems.push(`${tag}: ${result.width}px ekrandan taşan öğe: ${result.offenders.join(' | ')}`)
+}
+
+// Ziyaretçi sayfası küçük telefondan geniş ekrana kadar her genişlikte ekrana sığmalı
+for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
+  const ctx = await browser.newContext({ viewport: { width, height: 900 }, isMobile: width < 768, hasTouch: width < 768 })
+  await blockThirdParty(ctx)
+  const page = await ctx.newPage()
+  watch(page, `ana sayfa ${width}px`)
+  await page.goto(B + '/', { waitUntil: 'networkidle' })
+  await noHorizontalScroll(page, `ana sayfa ${width}px`)
+  if (SHOTS && (width === 360 || width === 1440)) await page.screenshot({ path: `${SHOTS}/home-${width}.png`, fullPage: true })
+  await ctx.close()
 }
 
 {
@@ -143,6 +174,26 @@ const noHorizontalScroll = async (page, tag) => {
   await heading(page, 'Görünüm')
   await noHorizontalScroll(page, 'admin telefon görünüm')
   await phone.close()
+}
+
+{
+  // Küçük telefon (320px): admin panelinin her bölümü ekrana sığmalı
+  const small = await browser.newContext({ viewport: { width: 320, height: 640 }, isMobile: true, hasTouch: true })
+  await blockThirdParty(small)
+  const page = await small.newPage()
+  watch(page, 'admin 320px')
+  await login(page)
+  await page.getByText(/^Sürüm /).waitFor({ timeout: 15000 })
+  await noHorizontalScroll(page, 'admin 320px Genel Bakış')
+  const bottom = page.getByRole('navigation', { name: 'Alt menü' })
+  for (const tab of ['Profil', 'Linkler ve Bloklar', 'Görünüm', 'Analitik', 'Aboneler', 'E-posta Gönder', 'QR Kod', 'Ayarlar']) {
+    await bottom.getByRole('button', { name: 'Daha fazla' }).click()
+    await page.getByRole('dialog', { name: 'Tüm bölümler' }).getByRole('button', { name: tab, exact: true }).click()
+    await heading(page, tab)
+    await page.waitForTimeout(500)
+    await noHorizontalScroll(page, `admin 320px ${tab}`)
+  }
+  await small.close()
 }
 
 await browser.close()

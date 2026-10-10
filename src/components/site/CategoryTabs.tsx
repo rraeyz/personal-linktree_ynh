@@ -25,7 +25,7 @@ export default function CategoryTabs({ categories, targetId }: { categories: str
     }`
 
   return (
-    <nav aria-label="Kategoriler" className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+    <nav aria-label="Kategoriler" className="flex flex-wrap gap-2 lg:pb-1 lg:-mx-1 lg:px-1">
       <button type="button" aria-pressed={active === null} onClick={() => setActive(null)} className={tabClass(active === null)}>Tümü</button>
       {categories.map((category) => (
         <button key={category} type="button" aria-pressed={active === category} onClick={() => setActive(category)} className={tabClass(active === category)}>

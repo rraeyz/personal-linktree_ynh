@@ -211,9 +211,14 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
             <tr>
               ${activeSocialLinks.map(link => `
                 <td style="padding: 0 8px;">
-                  <a href="${link.url}" style="display: inline-block; width: 44px; height: 44px; text-align: center; border-radius: 50%; background-color: ${link.color}; text-decoration: none; padding: 10px;" title="${link.platform}">
-                    <img src="${link.icon}" alt="${link.platform}" width="24" height="24" style="display: block; margin: 0 auto;" />
-                  </a>
+                  <!-- Daire bir tablo hücresi: ikon her e-posta istemcisinde yatay ve dikey ortalanır -->
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                    <td width="44" height="44" align="center" valign="middle" bgcolor="${link.color}" style="width: 44px; height: 44px; border-radius: 50%; background-color: ${link.color}; text-align: center; vertical-align: middle; line-height: 0; font-size: 0;">
+                      <a href="${link.url}" title="${link.platform}" style="display: inline-block; line-height: 0; text-decoration: none;">
+                        <img src="${link.icon}" alt="${link.platform}" width="22" height="22" style="display: block; border: 0;" />
+                      </a>
+                    </td>
+                  </tr></table>
                 </td>
               `).join('')}
             </tr>

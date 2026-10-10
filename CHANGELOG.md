@@ -1,3 +1,16 @@
+# 1.3.1
+
+### 📱 Her ekrana uyum (telefon, tablet)
+- Ziyaretçi sayfası 320px'lik küçük telefonlardan geniş ekranlara kadar ekrana tam sığıyor; uzun başlıklar ve linkler satır kırıyor, kategori sekmeleri telefonda alt satıra iniyor.
+- Kapak görseli (banner) telefon ve tablette kenardan kenara, alt kenarı arka plana yumuşakça karışarak; profil fotoğrafı bannerın üstüne biniyor. Geniş ekran görünümü değişmedi.
+- Admin panelinde telefonda taşan alanlar düzeltildi (Profil → Konum/saat dilimi, Görünüm → renkler, Analitik → tarih aralığı, Aboneler → butonlar). 1024px'te ezilen renk kutuları da düzeldi.
+- Tarayıcı testine 320px–1440px arasında "ekrandan taşan öğe var mı" kontrolü eklendi (ziyaretçi sayfası ve admin panelinin tüm bölümleri).
+
+### 🐞 Düzeltmeler
+- "Bana Ulaş" (iletişim formu) bloğu: form artık profil kartındaki "Bana yaz" gibi pencerede açılıyor. Önceden kart uzayıp form alttaki öğelerin (© satırı, telefonda bülten kutusu) üstüne biniyordu.
+- © satırı içerik kısa olsa da sayfanın en altında duruyor.
+- E-posta imzasındaki sosyal medya ikonları dairelerin tam ortasında (önceden yukarı kayıktı).
+
 # 1.3.0
 
 ### ✨ Yeni ziyaretçi sayfası

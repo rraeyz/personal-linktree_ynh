@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { FaArrowRight, FaChevronDown, FaLink, FaLock } from 'react-icons/fa'
-import ContactForm from './ContactForm'
+import { useCallback, useEffect, useState } from 'react'
+import { FaArrowRight, FaLink, FaLock } from 'react-icons/fa'
+import ContactModal from './site/ContactModal'
 import PasswordModal from './PasswordModal'
 import { openUrl, trackClick } from '@/lib/clientLinks'
 
@@ -44,6 +44,7 @@ export default function LinkButton({
 }: LinkButtonProps) {
   const [showContactForm, setShowContactForm] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const closeContactForm = useCallback(() => setShowContactForm(false), [])
 
   useEffect(() => {
     if (autoOpen && hasPassword) setShowPasswordModal(true)
@@ -71,7 +72,7 @@ export default function LinkButton({
     e.preventDefault()
     trackClick(linkId)
     if (isContact) {
-      setShowContactForm(!showContactForm)
+      setShowContactForm(true)
     } else if (hasPassword) {
       setShowPasswordModal(true)
     } else {
@@ -86,7 +87,7 @@ export default function LinkButton({
 
   const lockBadge = hasPassword && <FaLock className="w-4 h-4 shrink-0 text-dynamic-primary" aria-label="Şifreli" />
   const trailing = isContact ? (
-    <FaChevronDown className={`w-4 h-4 shrink-0 opacity-60 transition-transform ${showContactForm ? 'rotate-180' : ''}`} aria-hidden="true" />
+    <FaArrowRight className="w-4 h-4 shrink-0 opacity-50 group-hover:opacity-100 group-hover:text-[color:var(--color-primary)] transition-all" aria-hidden="true" />
   ) : (
     <FaArrowRight className="w-4 h-4 shrink-0 opacity-50 -rotate-45 group-hover:opacity-100 group-hover:text-[color:var(--color-primary)] transition-all" aria-hidden="true" />
   )
@@ -104,7 +105,7 @@ export default function LinkButton({
         )}
         <div className="flex-1 flex flex-col justify-center gap-2 p-5 md:p-7 text-dynamic-text">
           <span className="kicker text-dynamic-primary !opacity-100">Öne çıkan</span>
-          <span className="flex items-center gap-2 text-xl md:text-2xl font-semibold leading-snug">{title}{lockBadge}</span>
+          <span className="flex items-center gap-2 text-xl md:text-2xl font-semibold leading-snug [overflow-wrap:anywhere]">{title}{lockBadge}</span>
           {description && <span className="opacity-75 leading-relaxed whitespace-pre-line line-clamp-4">{description}</span>}
           <span className="inline-flex items-center gap-2 mt-1 font-semibold text-dynamic-primary">
             {isContact ? 'Formu aç' : 'Git'} <FaArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
@@ -124,7 +125,7 @@ export default function LinkButton({
         )}
         <div className="flex items-start justify-between gap-2 px-4 py-3 mt-auto">
           <span className="min-w-0">
-            <span className="block font-semibold leading-snug">{title}</span>
+            <span className="block font-semibold leading-snug [overflow-wrap:anywhere]">{title}</span>
             {description && <span className="block text-sm opacity-70 line-clamp-2 mt-0.5">{description}</span>}
           </span>
           {lockBadge}
@@ -141,7 +142,7 @@ export default function LinkButton({
           <span className="icon-chip">{iconNode}</span>
         )}
         <span className="flex-1 min-w-0">
-          <span className="block font-semibold leading-snug">{title}</span>
+          <span className="block font-semibold leading-snug [overflow-wrap:anywhere]">{title}</span>
           {description && <span className="block text-sm opacity-70 truncate mt-0.5">{description}</span>}
         </span>
         {lockBadge}
@@ -157,12 +158,12 @@ export default function LinkButton({
         rel="noopener noreferrer"
         onClick={handleClick}
         className="group relative block w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] rounded-dynamic"
-        aria-expanded={isContact ? showContactForm : undefined}
+        aria-haspopup={isContact ? 'dialog' : undefined}
       >
         {body}
       </a>
 
-      {isContact && showContactForm && <ContactForm onClose={() => setShowContactForm(false)} />}
+      {isContact && <ContactModal open={showContactForm} onClose={closeContactForm} />}
 
       {hasPassword && (
         <PasswordModal
