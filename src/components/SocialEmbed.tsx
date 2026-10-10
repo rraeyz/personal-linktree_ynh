@@ -104,7 +104,7 @@ export default function SocialEmbed({ url, type, title }: SocialEmbedProps) {
         </div>
       ) : (
         <div 
-          className="embed-container"
+          className="embed-container max-w-full overflow-hidden"
           dangerouslySetInnerHTML={{ __html: embedHtml }}
         />
       )}

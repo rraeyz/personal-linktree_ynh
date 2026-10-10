@@ -56,7 +56,7 @@ export default function ProfileCard({ profile, showContact }: ProfileCardProps) 
       <ProfileAvatar src={profile.imageUrl} name={profile.name} />
 
       <div className="w-full">
-        <h1 className="text-3xl sm:text-4xl lg:text-[2.6rem] font-bold leading-tight tracking-tight inline-flex flex-wrap items-center justify-center lg:justify-start gap-x-2.5 gap-y-1">
+        <h1 className="max-w-full text-3xl sm:text-4xl lg:text-[2.6rem] font-bold leading-tight tracking-tight inline-flex flex-wrap items-center justify-center lg:justify-start gap-x-2.5 gap-y-1 [overflow-wrap:anywhere]">
           {profile.name}
           {profile.verified && <FaCheckCircle className="w-6 h-6 text-blue-400 shrink-0" title="Doğrulanmış profil" aria-label="Doğrulanmış profil" />}
         </h1>
@@ -74,7 +74,7 @@ export default function ProfileCard({ profile, showContact }: ProfileCardProps) 
       {hasChips && (
         <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
           {profile.statusText && (
-            <span className="profile-chip">
+            <span className="profile-chip max-w-full">
               <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" aria-hidden="true" />
               {profile.statusText}
             </span>

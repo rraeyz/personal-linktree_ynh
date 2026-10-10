@@ -235,7 +235,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               <input id="statusText" type="text" maxLength={120} value={statusText} onChange={(e) => setStatusText(e.target.value)} placeholder="ör. Tez üzerinde çalışıyor" className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500" />
               <p className="text-xs text-gray-500 mt-1">Yanında yeşil nokta ile küçük bir etiket olarak görünür.</p>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-2">Konum</label>
                 <input id="location" type="text" maxLength={80} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="ör. İstanbul" className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500" />
@@ -253,7 +253,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {([
                 [showContactButton, setShowContactButton, '"Bana yaz" butonu', contactReady ? 'Ziyaretçi iletişim formunu açar.' : 'İletişim e-postası ve Ayarlar → SMTP dolmadan sitede görünmez.'],
                 [showShareButton, setShowShareButton, 'Paylaş butonu', 'Sayfa linkini paylaşır ya da kopyalar.'],
@@ -277,7 +277,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
         <div className="pt-6 border-t border-gray-700">
           <h3 className="text-lg font-semibold text-white">Sosyal medya hesapları</h3>
           <p className="text-sm text-gray-400 mt-1 mb-4">Profil kartında ikon olarak ve gönderdiğin e-postaların imzasında görünür. Boş olanlar gösterilmez.</p>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {([
               ['instagramUrl', 'Instagram', 'https://instagram.com/...'],
               ['twitterUrl', 'X (Twitter)', 'https://x.com/...'],

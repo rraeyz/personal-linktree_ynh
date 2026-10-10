@@ -150,7 +150,7 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <FaChartLine className="text-purple-400" />
@@ -160,7 +160,7 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
         </div>
         
         {/* Time Range Selector */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {[
             { value: '7d', label: 'Son 7 Gün' },
             { value: '30d', label: 'Son 30 Gün' },
@@ -465,7 +465,7 @@ export default function AnalyticsDashboard({ links }: AnalyticsProps) {
           <FaBullhorn className="text-purple-400" /> Kampanyalar (UTM)
         </h3>
         <p className="text-sm text-gray-400 mb-4">
-          Paylaştığınız linke <code className="text-purple-300">?utm_source=instagram&amp;utm_campaign=ekim</code> gibi parametreler eklerseniz hangi kampanyanın ne kadar ziyaret ve tıklama getirdiğini burada görürsünüz.
+          Paylaştığınız linke <code className="text-purple-300 break-all">?utm_source=instagram&amp;utm_campaign=ekim</code> gibi parametreler eklerseniz hangi kampanyanın ne kadar ziyaret ve tıklama getirdiğini burada görürsünüz.
         </p>
         {campaigns.length === 0 ? (
           <p className="text-sm text-gray-500">Bu aralıkta UTM parametreli ziyaret yok.</p>

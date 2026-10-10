@@ -129,9 +129,9 @@ export default function SubscriberManagement() {
   }
 
   return (
-    <div className="bg-dark-card border border-gray-800 rounded-2xl p-8">
+    <div className="bg-dark-card border border-gray-800 rounded-2xl p-5 sm:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             <FaEnvelope className="text-purple-400" />
@@ -143,7 +143,7 @@ export default function SubscriberManagement() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowEmailModal(true)}
             disabled={selectedIds.length === 0}

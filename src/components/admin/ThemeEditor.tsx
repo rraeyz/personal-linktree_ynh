@@ -197,7 +197,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
                 type="text"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="flex-1 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
                 type="text"
                 value={accentColor}
                 onChange={(e) => setAccentColor(e.target.value)}
-                className="flex-1 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
                 type="text"
                 value={backgroundColor}
                 onChange={(e) => setBackgroundColor(e.target.value)}
-                className="flex-1 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
                 type="text"
                 value={cardColor}
                 onChange={(e) => setCardColor(e.target.value)}
-                className="flex-1 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
                 type="text"
                 value={textColor}
                 onChange={(e) => setTextColor(e.target.value)}
-                className="flex-1 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-dark-bg border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
       </div>
 
       {/* Stil Ayarları */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Buton Stili */}
         <div className="p-6 bg-dark-card rounded-xl border border-gray-800">
           <h3 className="text-lg font-semibold text-white mb-4">Buton Stili</h3>
@@ -317,7 +317,7 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
       </div>
 
       {/* Border Radius & Animation */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 bg-dark-card rounded-xl border border-gray-800">
           <h3 className="text-lg font-semibold text-white mb-4">Köşe Yuvarlaklığı</h3>
           <div className="grid grid-cols-3 gap-2">
