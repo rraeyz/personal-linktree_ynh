@@ -1,5 +1,16 @@
 import type { Metadata } from 'next'
-import { fontVariables } from '@/lib/fonts'
+// Yazı tipleri (bkz. src/lib/fonts.ts). Her pakette latin-ext (Türkçe ğ, ş, ı, İ) dahil tüm alt kümeler var;
+// tarayıcı unicode-range sayesinde yalnızca sayfada kullanılan yazı tipinin gereken parçalarını indirir.
+import '@fontsource-variable/inter/wght.css'
+import '@fontsource-variable/montserrat/wght.css'
+import '@fontsource-variable/roboto/wght.css'
+import '@fontsource-variable/open-sans/wght.css'
+import '@fontsource-variable/sora/wght.css'
+import '@fontsource-variable/manrope/wght.css'
+import '@fontsource/poppins/400.css'
+import '@fontsource/poppins/500.css'
+import '@fontsource/poppins/600.css'
+import '@fontsource/poppins/700.css'
 import './globals.css'
 import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
@@ -70,7 +81,7 @@ export default function RootLayout({
 }) {
   return (
     // suppressHydrationWarning: açık/koyu mod sınıfı hydration'dan önce ThemeScript tarafından ekleniyor
-    <html lang="tr" className={fontVariables} suppressHydrationWarning>
+    <html lang="tr" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   )

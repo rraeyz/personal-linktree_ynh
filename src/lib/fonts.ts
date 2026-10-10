@@ -1,19 +1,9 @@
-import { Inter, Manrope, Montserrat, Open_Sans, Poppins, Roboto, Sora } from 'next/font/google'
+// Tema editöründeki yazı tipleri. Dosyalar npm'deki Fontsource paketlerinden gelir ve sitenin kendisinden
+// servis edilir (ziyaretçi Google'a istek göndermez); @font-face tanımları app/layout.tsx'te içe aktarılır.
+// Önceden next/font/google ile build sırasında Google'dan indiriliyordu; Google'ın yanıtı ara sıra next/font'u
+// çökertip build'i (CI, YunoHost kurulumu ve güncellemesi) bozuyordu. Artık build Google'a bağlı değil.
 
-// Tema editöründeki yazı tipleri build sırasında indirilip sunucudan servis edilir (ziyaretçi Google'a
-// istek göndermez). latin-ext: Türkçe ğ, ş, ı, İ karakterleri için gerekli.
-// preload kapalı: tarayıcı sadece sayfada gerçekten kullanılan fontun dosyalarını indirir.
-const inter = Inter({ subsets: ['latin', 'latin-ext'], variable: '--font-inter' })
-const poppins = Poppins({ subsets: ['latin', 'latin-ext'], weight: ['400', '500', '600', '700'], variable: '--font-poppins', preload: false })
-const montserrat = Montserrat({ subsets: ['latin', 'latin-ext'], variable: '--font-montserrat', preload: false })
-const roboto = Roboto({ subsets: ['latin', 'latin-ext'], weight: ['400', '500', '700'], variable: '--font-roboto', preload: false })
-const openSans = Open_Sans({ subsets: ['latin', 'latin-ext'], variable: '--font-open-sans', preload: false })
-const sora = Sora({ subsets: ['latin', 'latin-ext'], variable: '--font-sora', preload: false })
-const manrope = Manrope({ subsets: ['latin', 'latin-ext'], variable: '--font-manrope', preload: false })
-
-export const fontVariables = [inter, poppins, montserrat, roboto, openSans, sora, manrope].map((font) => font.variable).join(' ')
-
-// Profilde saklanan font adı → CSS değişkeni
+// Profilde saklanan font adı → CSS değişkeni (değişkenler globals.css'te)
 export const FONT_CSS_VARS: Record<string, string> = {
   Inter: 'var(--font-inter)',
   Poppins: 'var(--font-poppins)',
