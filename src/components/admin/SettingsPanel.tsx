@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import BackupPanel from './BackupPanel'
+import SelectMenu from './SelectMenu'
 import { FaKey, FaSave, FaTrash, FaChartLine, FaEnvelope } from 'react-icons/fa'
 
 export default function SettingsPanel() {
@@ -330,19 +331,21 @@ export default function SettingsPanel() {
             <p className="text-sm text-gray-400 mb-4">
               Analytics verilerinin ne kadar süre saklanacağını belirleyin. Süresi geçen veriler otomatik silinir.
             </p>
-            <select
-              value={retentionDays}
-              onChange={(e) => handleRetentionChange(Number(e.target.value))}
+            <SelectMenu
+              ariaLabel="Veri saklama süresi"
+              value={String(retentionDays)}
+              onChange={(value) => handleRetentionChange(Number(value))}
+              options={[
+                { value: '0', label: 'Sonsuza kadar sakla' },
+                { value: '7', label: '7 gün' },
+                { value: '30', label: '30 gün' },
+                { value: '60', label: '60 gün' },
+                { value: '90', label: '90 gün (Önerilen)' },
+                { value: '180', label: '180 gün' },
+                { value: '365', label: '1 yıl' },
+              ]}
               className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-colors"
-            >
-              <option value={0}>Sonsuza kadar sakla</option>
-              <option value={7}>7 gün</option>
-              <option value={30}>30 gün</option>
-              <option value={60}>60 gün</option>
-              <option value={90}>90 gün (Önerilen)</option>
-              <option value={180}>180 gün</option>
-              <option value={365}>1 yıl</option>
-            </select>
+            />
           </div>
 
           <div className="pt-4 border-t border-gray-700">

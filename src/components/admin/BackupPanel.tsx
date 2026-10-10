@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { FaDatabase, FaDownload, FaUpload, FaCheck, FaExclamationTriangle } from 'react-icons/fa'
 import { BACKUP_KINDS, BACKUP_KIND_INFO, BackupKind, BackupSummary, summarizeBackup } from '@/lib/backupFormat'
+import SelectMenu from './SelectMenu'
 
 // Ayarlar → Yedekleme: türü seçilerek yedek alınır; yedekten yüklemede dosyanın türü kendiliğinden
 // anlaşılır ve yüklemeden önce ne içerdiği / neyin üzerine yazılacağı gösterilir.
@@ -115,16 +116,15 @@ export default function BackupPanel() {
         <div>
           <h3 className="text-sm font-medium text-gray-300 mb-3">Yedek al</h3>
           <div className="flex flex-col sm:flex-row gap-3">
-            <select
-              aria-label="Yedek türü"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as BackupKind)}
-              className="flex-1 min-w-0 px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            >
-              {BACKUP_KINDS.map((value) => (
-                <option key={value} value={value}>{BACKUP_KIND_INFO[value].label}</option>
-              ))}
-            </select>
+            <div className="flex-1 min-w-0">
+              <SelectMenu
+                ariaLabel="Yedek türü"
+                value={kind}
+                onChange={(value) => setKind(value as BackupKind)}
+                options={BACKUP_KINDS.map((value) => ({ value, label: BACKUP_KIND_INFO[value].label }))}
+                className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
             <button
               type="button"
               onClick={download}
