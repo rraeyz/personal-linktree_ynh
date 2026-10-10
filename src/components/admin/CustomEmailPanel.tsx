@@ -46,7 +46,7 @@ export default function CustomEmailPanel() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <div className="bg-dark-card border border-gray-800 rounded-2xl p-8">
         <div className="flex items-center gap-3 mb-6">
           <FaPaperPlane className="w-5 h-5 text-blue-400" />
