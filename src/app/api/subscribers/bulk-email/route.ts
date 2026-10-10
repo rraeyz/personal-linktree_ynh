@@ -1,48 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
-import nodemailer from 'nodemailer'
-import { generateEmailHTML, textToHTML } from '@/lib/emailTemplate'
 import { getBaseUrl } from '@/lib/url'
 import { unsubscribeUrl } from '@/lib/unsubscribe'
+import {
+  buildEmailHtml,
+  buildEmailText,
+  createMailTransport,
+  isSmtpConfigured,
+  loadMailProfile,
+  senderAddress,
+} from '@/lib/mailer'
 
-// Email transporter yapılandırması - Database'den SMTP ayarlarını çek
+// Profil + SMTP ayarlarını database'den al; eksikse hata (aşağıda 500 olarak döner)
 const createTransporter = async () => {
-  const profile = await prisma.profile.findUnique({
-    where: { id: 1 },
-    select: {
-      smtpHost: true,
-      smtpPort: true,
-      smtpUser: true,
-      smtpPassword: true,
-      smtpFrom: true,
-      smtpFromName: true,
-      smtpSecure: true,
-      companyName: true,
-      companyAddress: true,
-      imageUrl: true,
-      linkedinUrl: true,
-      twitterUrl: true,
-      discordUrl: true,
-      youtubeUrl: true,
-      instagramUrl: true,
-      githubUrl: true,
-    }
-  })
-
-  if (!profile || !profile.smtpHost || !profile.smtpUser || !profile.smtpPassword) {
+  const profile = await loadMailProfile()
+  if (!isSmtpConfigured(profile)) {
     throw new Error('SMTP ayarları yapılandırılmamış. Ayarlar sayfasından SMTP ayarlarını girin.')
   }
-
-  return { transporter: nodemailer.createTransport({
-    host: profile.smtpHost,
-    port: profile.smtpPort,
-    secure: profile.smtpSecure,
-    auth: {
-      user: profile.smtpUser,
-      pass: profile.smtpPassword,
-    },
-  }), profile }
+  return { transporter: createMailTransport(profile), profile }
 }
 
 export async function POST(request: NextRequest) {
@@ -85,10 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Email gönderimi - Transporter oluştur
     const { transporter, profile } = await createTransporter()
-    const senderAddress = profile.smtpFrom || profile.smtpUser
-    const fromEmail = profile.smtpFromName
-      ? `"${profile.smtpFromName}" <${senderAddress}>`
-      : senderAddress
+    const fromEmail = senderAddress(profile)
 
     const baseUrl = getBaseUrl(request.headers)
     
@@ -106,31 +79,23 @@ export async function POST(request: NextRequest) {
       await Promise.all(
         batch.map(async (subscriber) => {
           try {
-            // HTML email template kullan
-            const htmlContent = generateEmailHTML({
+            // HTML + düz metin; imza ve sosyal ikonlar profilden
+            const content = {
               subject,
-              content: textToHTML(message),
-              companyLogo: profile.imageUrl || undefined,
-              companyName: profile.companyName,
-              companyAddress: profile.companyAddress,
-              socialLinks: {
-                linkedin: profile.linkedinUrl,
-                twitter: profile.twitterUrl,
-                discord: profile.discordUrl,
-                youtube: profile.youtubeUrl,
-                instagram: profile.instagramUrl,
-                github: profile.githubUrl,
-              },
+              message,
+              baseUrl,
               unsubscribeUrl: unsubscribeUrl(baseUrl, subscriber.email),
               viewInBrowserUrl: `${baseUrl}/`,
-              baseUrl,
-            })
+            }
+            const htmlContent = buildEmailHtml(profile, content)
+            const textContent = buildEmailText(profile, content)
 
             await transporter.sendMail({
               from: fromEmail,
               to: subscriber.email,
               subject: subject,
               html: htmlContent,
+              text: textContent,
               // Gmail/Outlook'taki "Abonelikten çık" butonu (RFC 8058 tek tıkla çıkış)
               list: {
                 unsubscribe: {

@@ -3,6 +3,7 @@ import type { IconType } from 'react-icons'
 import { isSafeUrl } from '@/lib/security'
 
 interface SocialIconsProps {
+  className?: string
   linkedinUrl: string
   twitterUrl: string
   discordUrl: string
@@ -25,7 +26,7 @@ export default function SocialIcons(props: SocialIconsProps) {
   if (items.length === 0) return null
 
   return (
-    <nav aria-label="Sosyal medya hesapları" className="flex flex-wrap justify-center gap-3 mt-6">
+    <nav aria-label="Sosyal medya hesapları" className={`flex flex-wrap gap-2.5 ${props.className ?? 'justify-center'}`}>
       {items.map(({ url, label, Icon }) => (
         <a
           key={label}
@@ -34,9 +35,9 @@ export default function SocialIcons(props: SocialIconsProps) {
           rel="noopener noreferrer me"
           aria-label={label}
           title={label}
-          className="p-3 rounded-full bg-dynamic-card border border-dynamic text-dynamic-text hover:text-[color:var(--color-primary)] hover:border-dynamic-primary hover:-translate-y-0.5 transition-all"
+          className="w-11 h-11 flex items-center justify-center rounded-xl bg-dynamic-card border border-dynamic text-dynamic-text hover:text-[color:var(--color-primary)] hover:border-dynamic-primary transition-colors"
         >
-          <Icon className="w-5 h-5" />
+          <Icon className="w-[18px] h-[18px]" />
         </a>
       ))}
     </nav>

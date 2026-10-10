@@ -43,7 +43,8 @@ const BUTTON_STYLE_CSS: Record<string, string> = {
   solid: `
 main .link-card { background: var(--color-primary); border-color: transparent; }
 main .link-card, main .link-card .text-dynamic-text { color: #ffffff; }
-main .link-card .text-dynamic-primary, main .link-card .text-gray-500 { color: rgba(255, 255, 255, 0.85); }`,
+main .link-card .text-dynamic-primary, main .link-card .text-gray-500 { color: rgba(255, 255, 255, 0.85); }
+main .link-card .icon-chip { color: #ffffff; background: rgba(255, 255, 255, 0.18); }`,
   outline: `
 main .link-card { background: transparent; border-width: 2px; border-color: var(--color-primary); box-shadow: none; }`,
   glass: `

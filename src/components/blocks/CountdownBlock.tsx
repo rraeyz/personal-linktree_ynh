@@ -42,16 +42,16 @@ export default function CountdownBlock({ linkId, title, description, targetDate,
   ]
 
   return (
-    <section className="link-card bg-dynamic-card rounded-dynamic border border-dynamic px-6 py-5 text-dynamic-text text-center">
-      {title && <h3 className="text-lg font-semibold">{title}</h3>}
-      {description && <p className="opacity-75 mt-1 whitespace-pre-line">{description}</p>}
+    <section className="site-card h-full px-5 py-5 text-dynamic-text">
+      {title && <h3 className="kicker">{title}</h3>}
+      {description && <p className="opacity-80 mt-1.5 whitespace-pre-line">{description}</p>}
       {time?.done ? (
-        <p className="mt-4 text-xl font-semibold text-dynamic-primary">🎉 Başladı!</p>
+        <p className="mt-4 text-xl font-semibold text-dynamic-primary">Başladı!</p>
       ) : (
         <div className="mt-4 grid grid-cols-4 gap-2" aria-live="off">
           {units.map(([label, value]) => (
-            <div key={label} className="rounded-dynamic bg-dynamic-input border border-dynamic py-3">
-              <div className="text-2xl font-bold tabular-nums">{value === undefined ? '--' : String(value).padStart(2, '0')}</div>
+            <div key={label} className="rounded-dynamic bg-dynamic-input py-2.5 text-center">
+              <div className="text-2xl font-semibold tabular-nums">{value === undefined ? '--' : String(value).padStart(2, '0')}</div>
               <div className="text-xs opacity-70">{label}</div>
             </div>
           ))}
@@ -61,7 +61,7 @@ export default function CountdownBlock({ linkId, title, description, targetDate,
         <button
           type="button"
           onClick={() => { trackClick(linkId); openUrl(url) }}
-          className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-dynamic gradient-primary-accent text-white font-medium hover:opacity-90"
+          className="mt-4 inline-flex items-center gap-2 font-semibold text-dynamic-primary hover:opacity-80"
         >
           Detaylar <FaArrowRight className="w-3 h-3" />
         </button>

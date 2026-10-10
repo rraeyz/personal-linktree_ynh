@@ -103,18 +103,15 @@ cd /opt/yunohost/personal_linktree && sudo docker-compose restart
 - **Kurulumdan sonra sayfa açılmıyor:** İmaj derlemesi uzun sürmüş olabilir. `docker logs` çıktısında `Ready` satırını bekleyin.
 - **E-posta gitmiyor:** Gmail için normal şifre değil "uygulama şifresi" gerekir (port 587, Secure kapalı).
 
-## Deneme reposu ile çalışma
+## Bir güncellemeyi geri alma
 
-Yeni özellikler önce deneme reposunda (`personel-linktree-deneme_ynh`) geliştirilip test domaininde denenir. Beğenilince bu repoya aktarılır. Deneme reposunun `scripts/_common.sh` dosyası kendi adresini, bu reponunki ise bu repoyu gösterir. Aktarırken bu satırın ana repo adresi olarak kalmasına dikkat edin.
+Her değişiklik bu repoya bir pull request (PR) ile gelir. Bir güncelleme sorun çıkarırsa:
 
-Test domainindeki kurulum deneme reposundan, ana domaindeki kurulum bu repodan güncellenir:
+1. GitHub'da o PR'ın sayfasını açın, altta **Revert** butonuna basın; açılan geri alma PR'ını birleştirin.
+2. Sunucuda güncellemeyi yeniden çalıştırın:
+   ```bash
+   sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personal-linktree_ynh --force
+   ```
 
-```bash
-# test domaini (deneme reposu)
-sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personel-linktree-deneme_ynh --force
-
-# ana domain (bu repo); aynı sunucuda ikinci kurulumun uygulama adı personal_linktree__2 olabilir
-sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personal-linktree_ynh --force
-```
-
-Daha önce deneme reposundan kurulmuş bir uygulamayı bu repoya bağlamak için, yukarıdaki ana repo `upgrade` komutunu bir kez çalıştırmanız yeterli. Sonraki güncellemeler bu repodan gelir.
+Veritabanına eklenen yeni kolonlar geri almada silinmez; eski sürüm onları yok sayar, veriler korunur.
+Daha eski bir duruma dönmek için YunoHost yedeğini de kullanabilirsiniz (bkz. "Yedekleme ve geri yükleme").

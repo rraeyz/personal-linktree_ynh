@@ -2,6 +2,26 @@
 
 import { motion } from 'framer-motion'
 
+// Sabit tohumlu sözde rastgele sayı: her çizimde aynı yıldız haritası (hidrasyon uyuşmazlığı olmaz)
+function seeded(seed: number) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+const STARS = (() => {
+  const random = seeded(20261010)
+  return Array.from({ length: 90 }, () => ({
+    x: +(random() * 100).toFixed(2),
+    y: +(random() * 100).toFixed(2),
+    r: +(0.5 + random() * 1.1).toFixed(2),
+    twinkle: random() < 0.15,
+    delay: +(random() * 4).toFixed(2),
+  }))
+})()
+
 interface DynamicBackgroundProps {
   type: string
   backgroundColor: string
@@ -29,6 +49,30 @@ export default function DynamicBackground({
         className="fixed inset-0 -z-10" 
         style={{ backgroundColor: 'var(--color-background)' }}
       />
+    )
+  }
+
+  // Yıldızlı gece: konumlar sabit (sunucu ve tarayıcı aynı çizer), birkaç yıldız hafifçe parıldar
+  if (type === 'stars') {
+    return (
+      <div className="fixed inset-0 -z-10 stars-bg" style={{ backgroundColor: 'var(--color-background)' }} aria-hidden="true">
+        <div
+          className="absolute inset-x-0 top-0 h-[70vh] opacity-40"
+          style={{ background: `radial-gradient(ellipse 60% 50% at 70% 0%, ${primaryColor}33, transparent 70%)` }}
+        />
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+          {STARS.map((star, index) => (
+            <circle
+              key={index}
+              cx={`${star.x}%`}
+              cy={`${star.y}%`}
+              r={star.r}
+              className={star.twinkle ? 'star star-twinkle' : 'star'}
+              style={star.twinkle ? { animationDelay: `${star.delay}s` } : undefined}
+            />
+          ))}
+        </svg>
+      </div>
     )
   }
 

@@ -11,9 +11,26 @@ export interface ThemePreset {
   fontFamily: string
   borderRadius: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
   animationSpeed: 'slow' | 'normal' | 'fast'
+  // Verilmezse tema seçilince arka plan "Gradient Blur" olur
+  backgroundType?: string
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
+  {
+    id: 'night-sky',
+    name: 'Gece Gökyüzü',
+    description: 'Koyu lacivert zemin, yıldızlar ve mor vurgu',
+    primaryColor: '#8b5cf6',
+    accentColor: '#c4b5fd',
+    backgroundColor: '#07070c',
+    cardColor: '#11111a',
+    textColor: '#ededf5',
+    buttonStyle: 'gradient',
+    fontFamily: 'Sora',
+    borderRadius: '2xl',
+    animationSpeed: 'normal',
+    backgroundType: 'stars',
+  },
   {
     id: 'purple-dream',
     name: 'Purple Dream',
@@ -134,6 +151,8 @@ export const FONT_FAMILIES = [
   { value: 'Montserrat', label: 'Montserrat (Elegant)' },
   { value: 'Roboto', label: 'Roboto (Clean)' },
   { value: 'Open Sans', label: 'Open Sans (Classic)' },
+  { value: 'Sora', label: 'Sora (Geometrik)' },
+  { value: 'Manrope', label: 'Manrope (Yumuşak)' },
 ]
 
 export const BORDER_RADIUS_OPTIONS = [
@@ -182,6 +201,12 @@ export const BACKGROUND_TYPES = [
     label: 'Parçacıklar', 
     description: 'Yüzen nokta efekti',
     icon: '⭐'
+  },
+ {
+    value: 'stars',
+    label: 'Yıldızlı Gece',
+    description: 'Hafif yıldızlar ve parıltı',
+    icon: '🌌'
   },
   { 
     value: 'image', 

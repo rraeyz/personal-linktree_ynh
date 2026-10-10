@@ -7,14 +7,13 @@ Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası
 ## Özellikler
 
 **Ziyaretçi sayfası**
-- Açık/koyu mod (admin panelinde seçilen tema renklerini korur, sayfa yenilenince yanıp sönmez)
-- 8 hazır tema; renk, 5 yazı tipi (Türkçe karakter destekli, sunucudan servis edilir), buton stili (gradient/düz/çerçeve/cam), köşe yuvarlaklığı, arka plan (düz, gradient, parçacık, mesh, görsel)
-- Kapak görseli ve iki düzen: klasik liste veya bento ızgara
-- Bloklar: link, iletişim formu, bağış, metin, portfolyo kartı, geri sayım, galeri (tam ekran görüntüleyici), Spotify, YouTube/X/Instagram gömme
-- Öne çıkan link (animasyonlu çerçeve) ve link önizleme görseli (yükleme veya siteden otomatik alma)
-- Kategoriler, sosyal medya ikonları
+- Geniş ekranda iki sütun (solda profil kartı, sağda bloklar), telefonda alt alta; açık/koyu mod
+- Tamamen dinamik: boş alanlar ve içi boş bloklar görünmez, blokların sırası admin panelindeki sıradır
+- Profil kartı: durum, konum ve yerel saat, sosyal ikonlar, "Bana yaz" (iletişim formu), paylaş, "Rehbere Ekle" (vCard), bülten
+- Bloklar: link (açıklamalı), iletişim formu, bağış, metin, portfolyo kartı, geri sayım, galeri (tam ekran görüntüleyici), Spotify, YouTube/X/Instagram gömme
+- Öne çıkan link/proje, link önizleme görseli (yükleme veya siteden otomatik alma), kategori sekmeleri
+- 9 hazır tema (Gece Gökyüzü dahil); renk, 7 yazı tipi (Türkçe karakter destekli, sunucudan servis edilir), buton stili, köşe yuvarlaklığı, arka plan (düz, gradient, parçacık, mesh, yıldızlı gece, görsel), kapak görseli
 - Şifreli linkler (URL sayfa kaynağında görünmez), zamanlanmış linkler, kısa linkler (`/go/<slug>`)
-- İletişim formu, bülten aboneliği, paylaş butonu, isteğe bağlı "Rehbere Ekle" (vCard)
 - SEO: başlık/açıklama, Open Graph görseli, favicon, `robots.txt`, `sitemap.xml`
 
 **Admin paneli** (`/admin`)
@@ -24,7 +23,7 @@ Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası
 - Canlı önizleme: telefon çerçevesinde site, her kayıttan sonra kendiliğinden yenilenir
 - Görsel yükleme: otomatik boyutlandırma, EXIF/konum bilgisi silinir
 - Analitik: profil görüntülenme, tekil ziyaretçi, etkileşim oranı, tıklamalar, cihaz/tarayıcı/ülke, trafik kaynakları, UTM kampanyaları, CSV dışa aktarma, saklama süresi
-- Bülten: abone yönetimi, toplu e-posta (kişiye özel "abonelikten çık" linki), tekil e-posta, e-posta imzası
+- E-posta: canlı önizleme, birden fazla alıcı veya tüm abonelere gönderim (kişiye özel "abonelikten çık" linki), kendine test, taslak kaydı, e-posta imzası
 - Ayarlar: SMTP, şifre değiştirme, tüm cihazlardan çıkış, ayarları dışa/içe aktarma
 
 **Güvenlik**

@@ -1,4 +1,4 @@
-import { Inter, Montserrat, Open_Sans, Poppins, Roboto } from 'next/font/google'
+import { Inter, Manrope, Montserrat, Open_Sans, Poppins, Roboto, Sora } from 'next/font/google'
 
 // Tema editöründeki yazı tipleri build sırasında indirilip sunucudan servis edilir (ziyaretçi Google'a
 // istek göndermez). latin-ext: Türkçe ğ, ş, ı, İ karakterleri için gerekli.
@@ -8,8 +8,10 @@ const poppins = Poppins({ subsets: ['latin', 'latin-ext'], weight: ['400', '500'
 const montserrat = Montserrat({ subsets: ['latin', 'latin-ext'], variable: '--font-montserrat', preload: false })
 const roboto = Roboto({ subsets: ['latin', 'latin-ext'], weight: ['400', '500', '700'], variable: '--font-roboto', preload: false })
 const openSans = Open_Sans({ subsets: ['latin', 'latin-ext'], variable: '--font-open-sans', preload: false })
+const sora = Sora({ subsets: ['latin', 'latin-ext'], variable: '--font-sora', preload: false })
+const manrope = Manrope({ subsets: ['latin', 'latin-ext'], variable: '--font-manrope', preload: false })
 
-export const fontVariables = [inter, poppins, montserrat, roboto, openSans].map((font) => font.variable).join(' ')
+export const fontVariables = [inter, poppins, montserrat, roboto, openSans, sora, manrope].map((font) => font.variable).join(' ')
 
 // Profilde saklanan font adı → CSS değişkeni
 export const FONT_CSS_VARS: Record<string, string> = {
@@ -18,4 +20,6 @@ export const FONT_CSS_VARS: Record<string, string> = {
   Montserrat: 'var(--font-montserrat)',
   Roboto: 'var(--font-roboto)',
   'Open Sans': 'var(--font-open-sans)',
+  Sora: 'var(--font-sora)',
+  Manrope: 'var(--font-manrope)',
 }

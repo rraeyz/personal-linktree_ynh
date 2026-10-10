@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { FaArrowRight, FaChevronDown, FaLink, FaLock } from 'react-icons/fa'
 import ContactForm from './ContactForm'
 import PasswordModal from './PasswordModal'
@@ -18,11 +17,13 @@ interface LinkButtonProps {
   hasPassword?: boolean
   passwordHint?: string
   autoOpen?: boolean
-  // Öne çıkan link: vurgulu, animasyonlu çerçeve
+  // Öne çıkan link: geniş kart, animasyonlu çerçeve
   featured?: boolean
   // Önizleme görseli (/media/... veya http(s))
   thumbnail?: string
-  // row: klasik liste satırı, tile: bento ızgara kutusu
+  // Başlığın altındaki kısa açıklama (opsiyonel)
+  description?: string
+  // row: liste satırı, tile: ızgara kutusu (telefonda da ikişerli)
   variant?: 'row' | 'tile'
 }
 
@@ -38,6 +39,7 @@ export default function LinkButton({
   autoOpen = false,
   featured = false,
   thumbnail = '',
+  description = '',
   variant = 'row',
 }: LinkButtonProps) {
   const [showContactForm, setShowContactForm] = useState(false)
@@ -61,7 +63,7 @@ export default function LinkButton({
       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
     />
   ) : (
-    iconElement ?? <FaLink className="w-5 h-5 text-dynamic-text transition-colors" />
+    iconElement ?? <FaLink className="w-[18px] h-[18px]" />
   )
 
   // Linki hemen aç (popup engelleyicilere takılmaz), tıklama kaydı arkada gider
@@ -82,70 +84,67 @@ export default function LinkButton({
     if (verifiedLink) openUrl(verifiedLink)
   }
 
-  const trailing = isContact ? (
-    <motion.div animate={{ rotate: showContactForm ? 180 : 0 }} transition={{ duration: 0.3 }}>
-      <FaChevronDown className="w-5 h-5 text-gray-500 group-hover:text-[color:var(--color-primary)] transition-colors" />
-    </motion.div>
-  ) : (
-    <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
-      <FaArrowRight className="w-5 h-5 text-gray-500 group-hover:text-[color:var(--color-primary)] transition-colors" />
-    </motion.div>
-  )
-
   const lockBadge = hasPassword && <FaLock className="w-4 h-4 shrink-0 text-dynamic-primary" aria-label="Şifreli" />
-
-  const iconBox = thumbnail ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={thumbnail} alt="" className="w-12 h-12 rounded-dynamic object-cover shrink-0" loading="lazy" />
+  const trailing = isContact ? (
+    <FaChevronDown className={`w-4 h-4 shrink-0 opacity-60 transition-transform ${showContactForm ? 'rotate-180' : ''}`} aria-hidden="true" />
   ) : (
-    <div className="p-3 gradient-primary-accent opacity-25 group-hover:opacity-35 rounded-xl transition-all transition-dynamic shrink-0">
-      {iconNode}
-    </div>
+    <FaArrowRight className="w-4 h-4 shrink-0 opacity-50 -rotate-45 group-hover:opacity-100 group-hover:text-[color:var(--color-primary)] transition-all" aria-hidden="true" />
   )
 
-  const cardClass = `link-card relative bg-dynamic-card hover:opacity-90 rounded-dynamic border border-dynamic group-hover:border-dynamic-primary transition-all transition-dynamic shadow-lg ${featured ? 'featured-card' : ''}`
+  const cardClass = `link-card relative bg-dynamic-card rounded-dynamic border border-dynamic transition-colors ${featured ? 'featured-card' : ''}`
 
   let body: React.ReactNode
-  if (variant === 'tile') {
-    // Bento kutusu: üstte görsel/ikon, altta başlık
+  if (featured) {
+    // Öne çıkan: geniş ekranda solda görsel, sağda başlık + açıklama
     body = (
-      <div className={`${cardClass} h-full flex flex-col overflow-hidden`}>
+      <div className={`${cardClass} overflow-hidden flex flex-col md:flex-row`}>
+        {thumbnail && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumbnail} alt="" className="w-full md:w-1/2 aspect-[16/9] md:aspect-auto md:min-h-[220px] object-cover" loading="lazy" />
+        )}
+        <div className="flex-1 flex flex-col justify-center gap-2 p-5 md:p-7 text-dynamic-text">
+          <span className="kicker text-dynamic-primary !opacity-100">Öne çıkan</span>
+          <span className="flex items-center gap-2 text-xl md:text-2xl font-semibold leading-snug">{title}{lockBadge}</span>
+          {description && <span className="opacity-75 leading-relaxed whitespace-pre-line line-clamp-4">{description}</span>}
+          <span className="inline-flex items-center gap-2 mt-1 font-semibold text-dynamic-primary">
+            {isContact ? 'Formu aç' : 'Git'} <FaArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </span>
+        </div>
+      </div>
+    )
+  } else if (variant === 'tile') {
+    // Izgara kutusu: üstte görsel/ikon, altta başlık
+    body = (
+      <div className={`${cardClass} h-full flex flex-col overflow-hidden text-dynamic-text`}>
         {thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumbnail} alt="" className="w-full aspect-video object-cover" loading="lazy" />
         ) : (
-          <div className="px-5 pt-5">
-            <div className="inline-flex p-3 gradient-primary-accent opacity-25 group-hover:opacity-35 rounded-xl">{iconNode}</div>
-          </div>
+          <div className="px-4 pt-4"><span className="icon-chip">{iconNode}</span></div>
         )}
-        <div className="flex items-center justify-between gap-2 px-5 py-4 mt-auto">
-          <span className={`${featured ? 'text-lg' : 'text-base'} font-medium text-dynamic-text leading-snug`}>{title}</span>
+        <div className="flex items-start justify-between gap-2 px-4 py-3 mt-auto">
+          <span className="min-w-0">
+            <span className="block font-semibold leading-snug">{title}</span>
+            {description && <span className="block text-sm opacity-70 line-clamp-2 mt-0.5">{description}</span>}
+          </span>
           {lockBadge}
-        </div>
-      </div>
-    )
-  } else if (featured && thumbnail) {
-    // Öne çıkan + görselli: üstte geniş görsel
-    body = (
-      <div className={`${cardClass} overflow-hidden`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={thumbnail} alt="" className="w-full aspect-[2/1] object-cover" loading="lazy" />
-        <div className="flex items-center justify-between gap-4 px-8 py-5">
-          <span className="text-xl font-semibold text-dynamic-text">{title}</span>
-          <div className="flex items-center gap-3">{lockBadge}{trailing}</div>
         </div>
       </div>
     )
   } else {
     body = (
-      <div className={`${cardClass} flex items-center justify-between ${featured ? 'px-8 py-7' : 'px-8 py-5'}`}>
-        <div className="flex items-center gap-4 min-w-0">
-          {iconBox}
-          <span className={`${featured ? 'text-xl font-semibold' : 'text-lg font-medium'} text-dynamic-text group-hover:opacity-90 transition-colors`}>
-            {title}
-          </span>
-          {lockBadge}
-        </div>
+      <div className={`${cardClass} h-full flex items-center gap-3.5 px-3.5 py-3 min-h-[64px] text-dynamic-text`}>
+        {thumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumbnail} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0" loading="lazy" />
+        ) : (
+          <span className="icon-chip">{iconNode}</span>
+        )}
+        <span className="flex-1 min-w-0">
+          <span className="block font-semibold leading-snug">{title}</span>
+          {description && <span className="block text-sm opacity-70 truncate mt-0.5">{description}</span>}
+        </span>
+        {lockBadge}
         {trailing}
       </div>
     )
@@ -153,20 +152,15 @@ export default function LinkButton({
 
   return (
     <div className="w-full h-full">
-      <motion.a
+      <a
         href={hasPassword || isContact ? '#' : url}
         rel="noopener noreferrer"
         onClick={handleClick}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ scale: 1.02, y: -2 }}
-        whileTap={{ scale: 0.98 }}
-        className="group relative block w-full h-full"
+        className="group relative block w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] rounded-dynamic"
         aria-expanded={isContact ? showContactForm : undefined}
       >
-        <div className="absolute inset-0 gradient-primary-accent opacity-0 group-hover:opacity-20 rounded-dynamic blur-xl transition-opacity duration-300" />
         {body}
-      </motion.a>
+      </a>
 
       {isContact && showContactForm && <ContactForm onClose={() => setShowContactForm(false)} />}
 

@@ -240,7 +240,7 @@ export default function DashboardClient({ initialProfile, initialLinks }: Dashbo
         </header>
 
         <main className={`flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-10 ${showPreview ? 'xl:grid xl:grid-cols-[minmax(0,1fr)_375px] xl:gap-8 xl:items-start' : ''}`}>
-          <div className="min-w-0 max-w-6xl">
+          <div className="min-w-0">
             {activeTab === 'overview' && <OverviewPanel name={name} onNavigate={goTo} onAddLink={addLink} />}
             {activeTab === 'profile' && <ProfileEditor initialProfile={initialProfile} />}
             {activeTab === 'links' && (
@@ -249,7 +249,7 @@ export default function DashboardClient({ initialProfile, initialLinks }: Dashbo
             {activeTab === 'theme' && <ThemeEditor initialProfile={initialProfile} />}
             {activeTab === 'analytics' && <AnalyticsDashboard links={initialLinks} />}
             {activeTab === 'subscribers' && <SubscriberManagement />}
-            {activeTab === 'custom-email' && <CustomEmailPanel />}
+            {activeTab === 'custom-email' && <CustomEmailPanel onNavigate={goTo} />}
             {activeTab === 'qr' && (
               <QRCodeGenerator url={host ? `${window.location.origin}` : ''} title="Link Tree QR Kod" />
             )}
