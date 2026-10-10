@@ -208,7 +208,7 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
         {profile.coverImage && (
           // Telefon/tablet: kenardan kenara, sayfanın en üstünde, alt kenarı arka plana yumuşakça karışır.
           // Geniş ekran (lg): içerik genişliğinde, yuvarlak köşeli banner.
-          <div className="relative -mx-5 sm:-mx-8 -mt-20 lg:mx-0 lg:mt-0 aspect-[16/9] sm:aspect-[5/2] lg:aspect-[4/1] overflow-hidden lg:rounded-dynamic lg:border lg:border-dynamic">
+          <div className="relative -mx-5 sm:-mx-8 -mt-20 lg:mx-0 lg:mt-0 aspect-[16/9] sm:aspect-[5/2] lg:aspect-[4/1] overflow-hidden cover-banner">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={profile.coverImage} alt="" className="w-full h-full object-cover" />
             <div aria-hidden="true" className="lg:hidden absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[color:var(--color-background)]" />
