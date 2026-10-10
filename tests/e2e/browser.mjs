@@ -1,4 +1,5 @@
-// Tarayıcı duman testi: ana sayfa (açık/koyu mod), mod geçişi ve admin panelinin tüm sekmeleri.
+// Tarayıcı duman testi: ana sayfa (açık/koyu mod), mod geçişi, admin panelinin tüm bölümleri,
+// komut paleti, blok ekleme/düzenleme ve telefon görünümü.
 // api.test.mjs'den SONRA çalıştırılmalı (kurulu site ve ADMIN_PASSWORD gerekir).
 // Kullanım: BASE_URL=http://localhost:3000 ADMIN_PASSWORD=... node tests/e2e/browser.mjs
 import { chromium } from 'playwright'
@@ -50,24 +51,98 @@ for (const mode of ['dark', 'light']) {
   await ctx.close()
 }
 
-{
-  const adminContext = await browser.newContext({ viewport: { width: 1280, height: 900 } })
-  await blockThirdParty(adminContext)
-  const page = await adminContext.newPage()
-  watch(page, 'admin')
+const login = async (page) => {
   await page.goto(B + '/admin/login', { waitUntil: 'networkidle' })
   await page.fill('input[type="text"]', 'admin')
   await page.fill('input[type="password"]', PASSWORD)
   await Promise.all([page.waitForURL('**/admin/dashboard', { timeout: 15000 }), page.click('button[type="submit"]')])
+}
+const heading = (page, name) => page.getByRole('heading', { level: 1, name, exact: true }).waitFor({ timeout: 10000 })
+const noHorizontalScroll = async (page, tag) => {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+  if (overflow > 1) problems.push(`${tag}: sayfa ${overflow}px yatay taşıyor`)
+}
+
+{
+  const adminContext = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  await blockThirdParty(adminContext)
+  const page = await adminContext.newPage()
+  watch(page, 'admin')
+  await login(page)
+
+  // Açılış ekranı: Genel Bakış
+  await heading(page, 'Genel Bakış')
+  await page.getByText(/^Sürüm /).waitFor({ timeout: 15000 })
+  await page.getByText('Görüntülenme').first().waitFor({ timeout: 15000 })
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-Genel_Bakis.png` })
+
   // Canlı önizleme açılmalı ve siteyi göstermeli
   await page.getByRole('button', { name: 'Önizleme' }).click()
   await page.frameLocator('iframe[title="Site önizlemesi"]').locator('h1').first().waitFor({ timeout: 15000 })
 
-  for (const tab of ['Profil Ayarları', 'Link Yönetimi', 'Analytics', 'Aboneler', 'Özel E-posta', 'QR Kod', 'Tema', 'Ayarlar']) {
-    await page.getByRole('button', { name: tab, exact: true }).click()
+  // Sol menüdeki tüm bölümler
+  const nav = page.getByRole('navigation', { name: 'Admin menüsü' })
+  for (const tab of ['Profil', 'Linkler ve Bloklar', 'Görünüm', 'Analitik', 'Aboneler', 'E-posta Gönder', 'QR Kod', 'Ayarlar', 'Genel Bakış']) {
+    await nav.getByRole('button', { name: tab, exact: true }).click()
+    await heading(page, tab)
     await page.waitForTimeout(700)
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-${tab.replace(/\s/g, '_')}.png` })
   }
+  await noHorizontalScroll(page, 'admin masaüstü')
+
+  // Komut paleti (Ctrl+K): yazıp Enter ile bölüme gider
+  await page.keyboard.press('Control+k')
+  await page.getByRole('dialog', { name: 'Ara veya komut çalıştır' }).waitFor()
+  await page.keyboard.type('analit')
+  await page.keyboard.press('Enter')
+  await heading(page, 'Analitik')
+
+  // Blok ekleme: önce tür seçilir, sonra form
+  await nav.getByRole('button', { name: 'Linkler ve Bloklar', exact: true }).click()
+  await page.getByRole('button', { name: 'Yeni Ekle' }).click()
+  await page.getByRole('button', { name: /^Metin/ }).click()
+  await page.getByPlaceholder('Hakkımda').fill('Tarayıcı testi bloğu')
+  await page.getByPlaceholder('Kendinizden veya duyurunuzdan bahsedin...').fill('Tarayıcıdan eklendi')
+  await page.getByRole('button', { name: 'Ekle', exact: true }).click()
+  const title = page.locator('h3', { hasText: 'Tarayıcı testi bloğu' })
+  await title.waitFor({ timeout: 10000 })
+
+  // Satır içi düzenleme: form o bloğun altında açılır, mevcut değerlerle dolu gelir
+  const row = title.locator('xpath=ancestor::div[contains(@class, "rounded-xl")][1]')
+  await row.getByRole('button', { name: 'Düzenle', exact: true }).click()
+  const titleInput = row.getByPlaceholder('Hakkımda')
+  await titleInput.waitFor()
+  if ((await titleInput.inputValue()) !== 'Tarayıcı testi bloğu') problems.push('satır içi düzenleme formu bloğun verisiyle açılmadı')
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-Linkler_duzenleme.png` })
+  await row.getByRole('button', { name: 'Vazgeç' }).click()
+  await adminContext.close()
+}
+
+{
+  // Telefon: alt menü ve "Daha fazla" listesi
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+  await blockThirdParty(phone)
+  const page = await phone.newPage()
+  watch(page, 'admin telefon')
+  await login(page)
+  await page.getByText(/^Sürüm /).waitFor({ timeout: 15000 })
+  await noHorizontalScroll(page, 'admin telefon')
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-telefon.png` })
+
+  const bottom = page.getByRole('navigation', { name: 'Alt menü' })
+  await bottom.getByRole('button', { name: 'Linkler' }).click()
+  await heading(page, 'Linkler ve Bloklar')
+  await noHorizontalScroll(page, 'admin telefon linkler')
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-telefon-linkler.png` })
+
+  await bottom.getByRole('button', { name: 'Daha fazla' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Tüm bölümler' })
+  await sheet.waitFor()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-telefon-menu.png` })
+  await sheet.getByRole('button', { name: 'Görünüm' }).click()
+  await heading(page, 'Görünüm')
+  await noHorizontalScroll(page, 'admin telefon görünüm')
+  await phone.close()
 }
 
 await browser.close()

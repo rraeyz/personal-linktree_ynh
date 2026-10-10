@@ -1,3 +1,13 @@
+# 1.2.0
+
+### ✨ Yeni admin paneli
+- Üstteki sekme şeridi yerine gruplu sol menü (Sayfam, Kitle, Araçlar). Telefon ve tablette altta menü, ortada "+" ile hızlı ekleme ve "Daha fazla" listesi.
+- **Genel Bakış** ekranı: 7/30 günlük görüntülenme, tekil ziyaretçi, tıklama ve yeni abone sayıları, önceki dönemle karşılaştırma, en çok tıklanan linkler.
+- **Site durumu** kartı: son otomatik yedeğin zamanı, e-posta (SMTP) ayarlı mı, yayına girmeyi bekleyen ve süresi dolmuş linkler, sürüm.
+- **Ctrl/⌘+K** ile arama: bölümlere git, link ekle, önizlemeyi aç, linki kopyala.
+- Linkler: eklerken önce blok türü seçiliyor; düzenleme formu sayfanın başında değil, bloğun hemen altında açılıyor; Aktif/Pasif yerine açma-kapama anahtarı; silme düzenleme formuna taşındı.
+- Açık bölüm adres çubuğunda (`#links` gibi) tutuluyor; sayfa yenilenince aynı yerde açılıyor.
+
 # 1.1.0
 
 ### 🔒 Güvenlik

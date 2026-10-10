@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FaPlus, FaTrash, FaTimes, FaGripVertical, FaSave, FaChartBar, FaFolder, FaEdit, FaLock, FaClock, FaStar } from 'react-icons/fa'
 import ScheduleStatus from '@/components/ScheduleStatus'
@@ -25,6 +25,9 @@ import { CSS } from '@dnd-kit/utilities'
 
 interface LinksEditorProps {
   initialLinks: any[]
+  // Başka bir yerden (Genel Bakış, komut paleti, telefondaki "+") "yeni ekle" istendi
+  autoAdd?: boolean
+  onAutoAddHandled?: () => void
 }
 
 const popularIcons = [
@@ -200,6 +203,39 @@ const payloadFromForm = (form: FormData, mode: 'add' | 'edit') => {
 const inputClass = 'w-full px-4 py-2 bg-dark-card border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500'
 const labelClass = 'block text-sm font-medium text-gray-300 mb-2'
 
+// Blok türü seçici: eklemenin ilk adımı, düzenlemede "Değiştir" ile açılır
+function TypePicker({ value, onPick }: { value?: string; onPick: (type: string) => void }) {
+  return (
+    <div>
+      {['Linkler', 'İçerik', 'Medya'].map((group) => (
+        <div key={group} className="mb-3 last:mb-0">
+          <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">{group}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {linkTypes.filter((t) => t.group === group).map((linkType) => {
+              const IconComponent = getIconComponent(linkType.icon)
+              return (
+                <button
+                  key={linkType.value}
+                  type="button"
+                  onClick={() => onPick(linkType.value)}
+                  aria-pressed={value === linkType.value}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    value === linkType.value ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 hover:border-gray-600 bg-dark-card'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4 text-purple-400 mb-1" />
+                  <div className="text-xs font-medium text-white">{linkType.label}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{linkType.description}</div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Ekleme ve düzenleme formunun ortak alanları
 function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: FormData) => void; mode: 'add' | 'edit' }) {
   const info = typeInfo(form.type)
@@ -207,6 +243,8 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
   const set = (patch: Partial<FormData>) => setForm({ ...form, ...patch })
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState('')
+  const [pickingType, setPickingType] = useState(false)
+  const TypeIcon = getIconComponent(info.icon)
 
   const fetchPreview = async () => {
     setPreviewError('')
@@ -229,33 +267,25 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
 
   return (
     <div className="space-y-4">
-      {/* Tip seçimi */}
+      {/* Tür: seçili tür gösterilir, "Değiştir" ile seçici açılır */}
       <div>
-        <label className={labelClass}>Blok Türü</label>
-        {['Linkler', 'İçerik', 'Medya'].map((group) => (
-          <div key={group} className="mb-3">
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">{group}</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {linkTypes.filter((t) => t.group === group).map((linkType) => {
-                const IconComponent = getIconComponent(linkType.icon)
-                return (
-                  <button
-                    key={linkType.value}
-                    type="button"
-                    onClick={() => set({ type: linkType.value })}
-                    className={`p-3 rounded-lg border-2 text-left transition-all ${
-                      form.type === linkType.value ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 hover:border-gray-600 bg-dark-card'
-                    }`}
-                  >
-                    <IconComponent className="w-4 h-4 text-purple-400 mb-1" />
-                    <div className="text-xs font-medium text-white">{linkType.label}</div>
-                    <div className="text-[11px] text-gray-500 mt-0.5">{linkType.description}</div>
-                  </button>
-                )
-              })}
+        <div className="flex items-center justify-between gap-3 p-3 bg-dark-card border border-gray-700 rounded-lg">
+          <div className="flex items-center gap-3 min-w-0">
+            <TypeIcon className="w-4 h-4 text-purple-400 shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-white">{info.label}</div>
+              <div className="text-xs text-gray-400">{info.description}</div>
             </div>
           </div>
-        ))}
+          <button type="button" onClick={() => setPickingType(!pickingType)} aria-expanded={pickingType} className="text-sm text-purple-300 hover:text-purple-200 whitespace-nowrap">
+            {pickingType ? 'Vazgeç' : 'Türü değiştir'}
+          </button>
+        </div>
+        {pickingType && (
+          <div className="mt-3">
+            <TypePicker value={form.type} onPick={(type) => { set({ type }); setPickingType(false) }} />
+          </div>
+        )}
       </div>
 
       <div>
@@ -425,7 +455,8 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
 }
 
 // Sortable Link Item Component
-function SortableLinkItem({ link, onToggle, onDelete, onEdit }: any) {
+// Düzenlenen blokta form satırın hemen altında açılır (sayfanın başına kaydırmaya gerek kalmaz)
+function SortableLinkItem({ link, onToggle, onEdit, editing, editor }: { link: any; onToggle: (id: number, enabled: boolean) => void; onEdit: (link: any) => void; editing: boolean; editor: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
@@ -444,17 +475,17 @@ function SortableLinkItem({ link, onToggle, onDelete, onEdit }: any) {
   if (link.type === 'contact') subtitle = 'İletişim formu'
 
   return (
-    <div ref={setNodeRef} style={style} className={`p-4 bg-dark-bg rounded-xl border ${link.featured ? 'border-yellow-500/40' : 'border-gray-700'} ${!link.enabled ? 'opacity-50' : ''}`}>
-      <div className="flex items-center gap-4">
-        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing" aria-label="Sürükle">
+    <div ref={setNodeRef} style={style} className={`bg-dark-bg rounded-xl border ${editing ? 'border-purple-500/60' : link.featured ? 'border-yellow-500/40' : 'border-gray-700'}`}>
+      <div className={`flex items-center gap-3 sm:gap-4 p-4 ${!link.enabled && !editing ? 'opacity-50' : ''}`}>
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing touch-none p-2 -m-2" aria-label="Sürükle">
           <FaGripVertical className="text-gray-600" />
         </div>
 
         {link.thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={link.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+          <img src={link.thumbnail} alt="" className="hidden sm:block w-10 h-10 rounded-lg object-cover shrink-0" />
         ) : (
-          <div className="p-2 bg-purple-500/10 rounded-lg shrink-0">
+          <div className="hidden sm:block p-2 bg-purple-500/10 rounded-lg shrink-0">
             {isLinkLike && (link.icon || '').startsWith('http') ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={link.icon} alt="" className="w-5 h-5 object-contain" />
@@ -483,19 +514,38 @@ function SortableLinkItem({ link, onToggle, onDelete, onEdit }: any) {
           {isScheduled && <div className="mt-2"><ScheduleStatus startDate={link.startDate} endDate={link.endDate} /></div>}
         </div>
 
-        <div className="flex items-center gap-2">
-          <button onClick={() => onEdit(link)} className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors" aria-label="Düzenle"><FaEdit className="w-4 h-4" /></button>
-          <button onClick={() => onToggle(link.id, link.enabled)} className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${link.enabled ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}>{link.enabled ? 'Aktif' : 'Pasif'}</button>
-          <button onClick={() => onDelete(link.id)} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors" aria-label="Sil"><FaTrash className="w-4 h-4" /></button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!!link.enabled}
+            aria-label={`${link.title}: sitede göster`}
+            title={link.enabled ? 'Sitede görünüyor' : 'Gizli'}
+            onClick={() => onToggle(link.id, link.enabled)}
+            className={`relative w-11 h-6 rounded-full transition-colors ${link.enabled ? 'bg-purple-600' : 'bg-gray-700'}`}
+          >
+            <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${link.enabled ? 'translate-x-5' : ''}`} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onEdit(link)}
+            aria-expanded={editing}
+            className={`p-2.5 rounded-lg transition-colors ${editing ? 'bg-purple-500/20 text-purple-200' : 'bg-white/5 hover:bg-white/10 text-gray-300'}`}
+            aria-label={editing ? 'Düzenlemeyi kapat' : 'Düzenle'}
+          >
+            {editing ? <FaTimes className="w-4 h-4" /> : <FaEdit className="w-4 h-4" />}
+          </button>
         </div>
       </div>
+      {editing && <div className="border-t border-gray-800 p-4 sm:p-5">{editor}</div>}
     </div>
   )
 }
 
-export default function LinksEditor({ initialLinks }: LinksEditorProps) {
+export default function LinksEditor({ initialLinks, autoAdd, onAutoAddHandled }: LinksEditorProps) {
   const [links, setLinks] = useState(initialLinks)
-  const [mode, setMode] = useState<'closed' | 'add' | 'edit'>('closed')
+  // add-pick: önce tür seçilir, add: ekleme formu, edit: satır içinde düzenleme
+  const [mode, setMode] = useState<'closed' | 'add-pick' | 'add' | 'edit'>('closed')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<FormData>(emptyForm())
   const [saving, setSaving] = useState(false)
@@ -506,6 +556,22 @@ export default function LinksEditor({ initialLinks }: LinksEditorProps) {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
+
+  const startAdd = () => {
+    setForm(emptyForm())
+    setEditingId(null)
+    setError('')
+    setMode('add-pick')
+  }
+
+  // Genel Bakış, komut paleti veya telefondaki "+" butonundan gelen "yeni ekle" isteği
+  useEffect(() => {
+    if (autoAdd) {
+      startAdd()
+      onAutoAddHandled?.()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAdd])
 
   const reload = async () => {
     router.refresh()
@@ -561,8 +627,10 @@ export default function LinksEditor({ initialLinks }: LinksEditorProps) {
   const handleDelete = async (id: number) => {
     if (!confirm('Bu bloğu silmek istediğinize emin misiniz?')) return
     const response = await fetch(`/api/links/${id}`, { method: 'DELETE' })
-    if (response.ok) await reload()
-    else alert('Silinirken hata oluştu')
+    if (response.ok) {
+      closeForm()
+      await reload()
+    } else alert('Silinirken hata oluştu')
   }
 
   const toggleEnabled = async (id: number, enabled: boolean) => {
@@ -571,55 +639,88 @@ export default function LinksEditor({ initialLinks }: LinksEditorProps) {
   }
 
   const handleEditClick = (link: any) => {
+    // Aynı bloğa tekrar basmak formu kapatır
+    if (mode === 'edit' && editingId === link.id) return closeForm()
     setForm(formFromLink(link))
     setEditingId(link.id)
     setMode('edit')
     setError('')
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  return (
-    <div className="bg-dark-card border border-gray-800 rounded-2xl p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">Link ve Blok Yönetimi</h2>
+  // Ekleme ve düzenlemede ortak form + kaydet/vazgeç/sil
+  const formPanel = (formMode: 'add' | 'edit') => (
+    <>
+      <LinkFormFields form={form} setForm={setForm} mode={formMode} />
+      {error && <p className="mt-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/40 text-red-400 text-sm">{error}</p>}
+      <div className="flex flex-wrap gap-2 mt-4">
         <button
-          onClick={() => { setForm(emptyForm()); setEditingId(null); setMode('add'); setError('') }}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition-all"
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
+        >
+          <FaSave className="w-4 h-4" />
+          <span>{saving ? 'Kaydediliyor...' : formMode === 'edit' ? 'Değişiklikleri kaydet' : 'Ekle'}</span>
+        </button>
+        <button type="button" onClick={closeForm} className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+          Vazgeç
+        </button>
+        {formMode === 'edit' && editingId !== null && (
+          <button type="button" onClick={() => handleDelete(editingId)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 rounded-lg transition-colors sm:ml-auto">
+            <FaTrash className="w-3.5 h-3.5" /> Sil
+          </button>
+        )}
+      </div>
+    </>
+  )
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-gray-400">
+          {links.length > 0 ? `${links.length} blok · tutamaçtan sürükleyerek sırala` : 'Sayfana ilk bloğu ekle'}
+        </p>
+        <button
+          type="button"
+          onClick={startAdd}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors"
         >
           <FaPlus className="w-4 h-4" />
           <span>Yeni Ekle</span>
         </button>
       </div>
 
-      {mode !== 'closed' && (
-        <div className={`mb-6 p-6 bg-dark-bg rounded-xl border-2 ${mode === 'edit' ? 'border-blue-500/30' : 'border-purple-500/30'}`}>
-          <h3 className="text-lg font-semibold text-white mb-4">{mode === 'edit' ? 'Düzenle' : 'Yeni Ekle'}</h3>
-          <LinkFormFields form={form} setForm={setForm} mode={mode === 'edit' ? 'edit' : 'add'} />
-          {error && <p className="mt-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/40 text-red-400 text-sm">{error}</p>}
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 ${mode === 'edit' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white rounded-lg transition-colors disabled:opacity-60`}
-            >
-              <FaSave className="w-4 h-4" />
-              <span>{saving ? 'Kaydediliyor...' : mode === 'edit' ? 'Güncelle' : 'Kaydet'}</span>
-            </button>
-            <button onClick={closeForm} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors" aria-label="Vazgeç">
+      {(mode === 'add-pick' || mode === 'add') && (
+        <div className="p-5 sm:p-6 bg-dark-card rounded-2xl border border-purple-500/40">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">{mode === 'add-pick' ? 'Ne eklemek istersin?' : 'Yeni blok'}</h2>
+            <button type="button" onClick={closeForm} className="p-2 rounded-lg text-gray-400 hover:text-white" aria-label="Kapat">
               <FaTimes className="w-4 h-4" />
             </button>
           </div>
+          {mode === 'add-pick' ? (
+            <TypePicker onPick={(type) => { setForm({ ...emptyForm(), type }); setMode('add') }} />
+          ) : (
+            formPanel('add')
+          )}
         </div>
       )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <div className="space-y-3">
           {links.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">Henüz bir şey eklenmemiş</p>
+            <p className="text-center text-gray-400 py-10 bg-dark-card rounded-2xl border border-gray-800">Henüz bir şey eklenmemiş</p>
           ) : (
             <SortableContext items={links.map((link: any) => link.id)} strategy={verticalListSortingStrategy}>
               {links.map((link: any) => (
-                <SortableLinkItem key={link.id} link={link} onToggle={toggleEnabled} onDelete={handleDelete} onEdit={handleEditClick} />
+                <SortableLinkItem
+                  key={link.id}
+                  link={link}
+                  onToggle={toggleEnabled}
+                  onEdit={handleEditClick}
+                  editing={mode === 'edit' && editingId === link.id}
+                  editor={mode === 'edit' && editingId === link.id ? formPanel('edit') : null}
+                />
               ))}
             </SortableContext>
           )}

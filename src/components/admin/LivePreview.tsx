@@ -35,7 +35,7 @@ export default function LivePreview({ onClose }: { onClose: () => void }) {
 
   return (
     // Geniş ekranda ızgaranın sağ sütununda yapışkan panel; dar ekranda tam ekran katman
-    <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 lg:sticky lg:top-24 lg:inset-auto lg:z-auto lg:bg-transparent lg:p-0 lg:block lg:self-start">
+    <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 xl:sticky xl:top-24 xl:inset-auto xl:z-auto xl:bg-transparent xl:p-0 xl:block xl:self-start">
       <div>
         <div className="flex items-center justify-between mb-3 w-[375px] max-w-full">
           <span className="text-sm font-medium text-gray-300">Canlı önizleme</span>
