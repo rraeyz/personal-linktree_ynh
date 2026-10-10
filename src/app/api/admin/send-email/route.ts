@@ -1,115 +1,95 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
-import nodemailer from 'nodemailer'
-import { generateEmailHTML, textToHTML } from '@/lib/emailTemplate'
 import { getBaseUrl } from '@/lib/url'
+import { isValidEmail } from '@/lib/security'
+import {
+  buildEmailHtml,
+  buildEmailText,
+  createMailTransport,
+  isSmtpConfigured,
+  loadMailProfile,
+  parseRecipients,
+  senderAddress,
+} from '@/lib/mailer'
+
+// Tek gönderimde en fazla bu kadar alıcı (her birine ayrı e-posta gider, adresler birbirini görmez)
+const MAX_RECIPIENTS = 20
 
 export async function POST(request: NextRequest) {
   try {
     const authenticated = await isAuthenticated()
-    
+
     if (!authenticated) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { to, subject, message } = await request.json()
+    const recipients = parseRecipients(to)
 
     // Validasyon
-    if (!to || !subject || !message) {
+    if (recipients.length === 0 || !subject || !message) {
       return NextResponse.json(
         { error: 'Alıcı, konu ve mesaj gerekli' },
         { status: 400 }
       )
     }
-
-    // Email formatını kontrol et
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(to)) {
+    if (recipients.length > MAX_RECIPIENTS) {
       return NextResponse.json(
-        { error: 'Geçersiz e-posta adresi' },
+        { error: `Tek seferde en fazla ${MAX_RECIPIENTS} alıcıya gönderilebilir. Daha fazlası için abonelere toplu gönderimi kullanın.` },
+        { status: 400 }
+      )
+    }
+    const invalid = recipients.filter((email) => !isValidEmail(email))
+    if (invalid.length > 0) {
+      return NextResponse.json(
+        { error: invalid.length === 1 && recipients.length === 1 ? 'Geçersiz e-posta adresi' : `Geçersiz e-posta adresi: ${invalid.join(', ')}` },
         { status: 400 }
       )
     }
 
-    // Profile ve SMTP ayarlarını çek
-    const profile = await prisma.profile.findUnique({
-      where: { id: 1 },
-      select: {
-        smtpHost: true,
-        smtpPort: true,
-        smtpUser: true,
-        smtpPassword: true,
-        smtpFrom: true,
-        smtpFromName: true,
-        smtpSecure: true,
-        companyName: true,
-        companyAddress: true,
-        imageUrl: true,
-        linkedinUrl: true,
-        twitterUrl: true,
-        discordUrl: true,
-        youtubeUrl: true,
-        instagramUrl: true,
-        githubUrl: true,
-      }
-    })
-
-    if (!profile || !profile.smtpHost || !profile.smtpUser || !profile.smtpPassword) {
+    // Profil ve SMTP ayarları
+    const profile = await loadMailProfile()
+    if (!isSmtpConfigured(profile)) {
       return NextResponse.json(
         { error: 'SMTP ayarları yapılandırılmamış. Lütfen önce ayarlar sayfasından SMTP ayarlarını girin.' },
         { status: 400 }
       )
     }
 
-    // Transporter oluştur
-    const transporter = nodemailer.createTransport({
-      host: profile.smtpHost,
-      port: profile.smtpPort,
-      secure: profile.smtpSecure,
-      auth: {
-        user: profile.smtpUser,
-        pass: profile.smtpPassword,
-      },
-    })
+    const transporter = createMailTransport(profile)
+    const from = senderAddress(profile)
+    const content = { subject, message, baseUrl: getBaseUrl(request.headers) }
+    const html = buildEmailHtml(profile, content)
+    const text = buildEmailText(profile, content)
 
-    // Gönderen email formatı
-    const senderAddress = profile.smtpFrom || profile.smtpUser
-    const fromEmail = profile.smtpFromName
-      ? `"${profile.smtpFromName}" <${senderAddress}>`
-      : senderAddress
+    // Her alıcıya ayrı e-posta (sırayla: SMTP sunucusu hız sınırına takılmasın)
+    const failed: string[] = []
+    for (const recipient of recipients) {
+      try {
+        await transporter.sendMail({ from, to: recipient, subject, html, text })
+      } catch (error: any) {
+        console.error('Custom email error:', recipient, error?.message)
+        failed.push(`${recipient}: ${error?.message || 'gönderilemedi'}`)
+      }
+    }
 
-    // HTML email template oluştur
-    const htmlContent = generateEmailHTML({
-      subject,
-      content: textToHTML(message),
-      companyLogo: profile.imageUrl || undefined,
-      companyName: profile.companyName,
-      companyAddress: profile.companyAddress,
-      socialLinks: {
-        linkedin: profile.linkedinUrl,
-        twitter: profile.twitterUrl,
-        discord: profile.discordUrl,
-        youtube: profile.youtubeUrl,
-        instagram: profile.instagramUrl,
-        github: profile.githubUrl,
-      },
-      baseUrl: getBaseUrl(request.headers),
-    })
-
-    // Email gönder
-    await transporter.sendMail({
-      from: fromEmail,
-      to: to,
-      subject: subject,
-      html: htmlContent,
-    })
+    const sent = recipients.length - failed.length
+    if (sent === 0) {
+      return NextResponse.json(
+        { error: 'E-posta gönderimi başarısız', details: failed.join('; ') },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      message: `E-posta ${to} adresine başarıyla gönderildi`
+      sent,
+      failed: failed.length,
+      errors: failed.length > 0 ? failed : undefined,
+      message: recipients.length === 1
+        ? `E-posta ${recipients[0]} adresine başarıyla gönderildi`
+        : `E-posta ${sent} adrese gönderildi${failed.length ? `, ${failed.length} adrese gönderilemedi` : ''}`,
     })
-
   } catch (error: any) {
     console.error('Custom email error:', error)
     return NextResponse.json(

@@ -227,6 +227,32 @@ test('ziyaretçi sayfası: profil kartı, dinamik bloklar ve sıra', async () =>
   await req(`/api/links/${empty.data.id}`, { method: 'DELETE', cookie: admin })
 })
 
+test('e-posta gönder: doğrulama ve önizleme (imza profilden)', async () => {
+  const send = (body, cookie = admin) => req('/api/admin/send-email', { method: 'POST', cookie, body })
+  assert.equal((await send({ to: 'a@example.com', subject: 's', message: 'm' }, '')).status, 401)
+  assert.equal((await req('/api/admin/email-preview', { method: 'POST', body: { subject: 's' } })).status, 401)
+  assert.equal((await send({ to: '', subject: 's', message: 'm' })).status, 400, 'alıcı zorunlu')
+  const invalid = await send({ to: 'a@example.com, bozuk-adres', subject: 's', message: 'm' })
+  assert.equal(invalid.status, 400)
+  assert.match(invalid.data.error, /bozuk-adres/)
+  const many = Array.from({ length: 21 }, (_, i) => `k${i}@example.com`).join(', ')
+  assert.equal((await send({ to: many, subject: 's', message: 'm' })).status, 400, '20 alıcı sınırı')
+  // SMTP tamamlanmadığı için gönderim yapılmaz ama doğrulamadan geçer
+  const noSmtp = await send({ to: 'a@example.com, b@example.com', subject: 's', message: 'm' })
+  assert.equal(noSmtp.status, 400)
+  assert.match(noSmtp.data.error, /SMTP/)
+
+  // İmzadaki sosyal ikonlar Profil'deki adreslerden gelir
+  assert.equal((await req('/api/profile', { method: 'PUT', cookie: admin, body: { githubUrl: 'https://github.com/ornek', companyName: 'Örnek Şirket' } })).status, 200)
+  const preview = await req('/api/admin/email-preview', { method: 'POST', cookie: admin, body: { subject: 'Konu', message: 'Merhaba **dünya**', audience: 'subscribers' } })
+  assert.equal(preview.status, 200)
+  assert.ok(preview.data.html.includes('<strong>dünya</strong>'))
+  assert.ok(preview.data.html.includes('https://github.com/ornek'), 'imzada GitHub linki olmalı')
+  assert.ok(preview.data.html.includes('Örnek Şirket'))
+  assert.ok(preview.data.html.includes('Abonelikten'), 'abonelere giden e-postada çıkış linki')
+  assert.equal(preview.data.smtpConfigured, false)
+})
+
 test('link önizleme: yetki ve SSRF koruması', async () => {
   assert.equal((await req('/api/admin/link-preview', { method: 'POST', body: { url: 'https://example.com' } })).status, 401)
   for (const url of ['http://127.0.0.1:3000/', 'http://localhost/', 'http://169.254.169.254/latest/meta-data/', 'http://[::1]/', 'file:///etc/passwd']) {

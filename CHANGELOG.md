@@ -16,6 +16,13 @@
 - Görünüm: hazır temalar kendi arka planını da seçer.
 - Önizleme kapalıyken içerik tüm genişliği kullanır.
 
+### ✉️ E-posta Gönder
+- Canlı önizleme: gönderilecek e-postanın birebir aynısı (imza, logo, sosyal ikonlar dahil).
+- Birden fazla alıcı (en fazla 20; her kişiye ayrı e-posta, adresler birbirini görmez), abonelerden alıcı ekleme ve "Tüm abonelere" gönderim (onay sorulur).
+- "Kendime test gönder", taslak otomatik kaydı, kısmi hataların adres adres listelenmesi.
+- Tüm e-postalara düz metin sürümü eklendi (spam filtrelerine daha az takılır). HTML içerik değişmedi.
+- Gönderim kodu tek yerde toplandı (`src/lib/mailer.ts`); imza her gönderimde profilden okunmaya devam ediyor.
+
 # 1.2.0
 
 ### ✨ Yeni admin paneli

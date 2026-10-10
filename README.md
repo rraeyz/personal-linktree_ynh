@@ -23,7 +23,7 @@ Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası
 - Canlı önizleme: telefon çerçevesinde site, her kayıttan sonra kendiliğinden yenilenir
 - Görsel yükleme: otomatik boyutlandırma, EXIF/konum bilgisi silinir
 - Analitik: profil görüntülenme, tekil ziyaretçi, etkileşim oranı, tıklamalar, cihaz/tarayıcı/ülke, trafik kaynakları, UTM kampanyaları, CSV dışa aktarma, saklama süresi
-- Bülten: abone yönetimi, toplu e-posta (kişiye özel "abonelikten çık" linki), tekil e-posta, e-posta imzası
+- E-posta: canlı önizleme, birden fazla alıcı veya tüm abonelere gönderim (kişiye özel "abonelikten çık" linki), kendine test, taslak kaydı, e-posta imzası
 - Ayarlar: SMTP, şifre değiştirme, tüm cihazlardan çıkış, ayarları dışa/içe aktarma
 
 **Güvenlik**

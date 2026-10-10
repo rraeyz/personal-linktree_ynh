@@ -249,7 +249,7 @@ export default function DashboardClient({ initialProfile, initialLinks }: Dashbo
             {activeTab === 'theme' && <ThemeEditor initialProfile={initialProfile} />}
             {activeTab === 'analytics' && <AnalyticsDashboard links={initialLinks} />}
             {activeTab === 'subscribers' && <SubscriberManagement />}
-            {activeTab === 'custom-email' && <CustomEmailPanel />}
+            {activeTab === 'custom-email' && <CustomEmailPanel onNavigate={goTo} />}
             {activeTab === 'qr' && (
               <QRCodeGenerator url={host ? `${window.location.origin}` : ''} title="Link Tree QR Kod" />
             )}
