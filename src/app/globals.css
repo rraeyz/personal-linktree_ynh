@@ -88,6 +88,17 @@ body {
   overflow-x: clip;
 }
 
+:root {
+  /* Fontsource paketlerindeki aile adları (src/app/layout.tsx'te içe aktarılır) */
+  --font-inter: 'Inter Variable';
+  --font-poppins: 'Poppins';
+  --font-montserrat: 'Montserrat Variable';
+  --font-roboto: 'Roboto Variable';
+  --font-open-sans: 'Open Sans Variable';
+  --font-sora: 'Sora Variable';
+  --font-manrope: 'Manrope Variable';
+}
+
 body {
   font-family: var(--font-inter), sans-serif;
   min-height: 100vh;
