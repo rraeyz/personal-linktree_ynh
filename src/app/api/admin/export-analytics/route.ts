@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
+import { CSV_BOM, csvRow } from '@/lib/csv'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
       const dateStr = date.toLocaleDateString('tr-TR')
       const timeStr = date.toLocaleTimeString('tr-TR')
       
-      return [
+      return csvRow([
         dateStr,
         timeStr,
         item.link.title,
@@ -47,10 +48,10 @@ export async function GET(request: NextRequest) {
         item.city || '',
         item.referrer || 'Direkt',
         item.ipHash || ''
-      ].map(field => `"${field}"`).join(',')
+      ])
     }).join('\n')
 
-    const csv = csvHeader + csvRows
+    const csv = CSV_BOM + csvHeader + csvRows
 
     return new NextResponse(csv, {
       headers: {

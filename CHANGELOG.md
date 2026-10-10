@@ -1,3 +1,18 @@
+# 1.4.0
+
+### 🏷 Yeni ad: Künye
+- Uygulamanın adı **Künye**, kimliği `kunye`, repo `github.com/rraeyz/kunye_ynh`. YunoHost kurulum ekranı artık "Künye" önerir.
+- Kimlik değiştiği için bu sürüm eski `personal_linktree` kurulumunun üstüne güncelleme olarak kurulmaz: kaldırıp yeniden kurun. Verileri taşıma adımları `YUNOHOST-KURULUM.md`'de.
+
+### 🔒 Güvenlik
+- **Kurulum anahtarı:** YunoHost kurulumu tek kullanımlık bir anahtar üretir ve kurulum sonunda `/setup?token=...` linkini gösterir. Önceden kurulum bittikten sonra siteyi ilk açan kişi admin hesabını oluşturabiliyordu.
+- Bir bloğun yalnızca tipi değiştirilerek doğrulanmamış (`javascript:` gibi) bir adres yayına alınamaz; içe aktarılan yedekteki adresler de denetlenir; sayfa ve `/go` yönlendirmesi yalnızca http(s)/mailto/tel adreslerini kullanır.
+- Link önizlemesi (og:image çekme) `::ffff:7f00:1` gibi IPv4 taşıyan IPv6 adresleriyle yerel ağa erişemez.
+- SEO ve tema kaydetme yanıtları SMTP şifresini artık geri göndermiyor.
+- Analitik ve abone CSV'lerinde ziyaretçiden gelen değerler (referrer, abone adı) Excel'de formül olarak çalışamaz; Türkçe karakterler Excel'de doğru görünür.
+- `/go/...` kısa linkleri aynı IP'den dakikada 30'dan fazla tıklama kaydetmez (sayaç şişirme engeli).
+- E-posta şablonunda konu, şirket adı/adresi ve sosyal linkler HTML olarak kaçışlanıyor. TIFF yükleme kapatıldı.
+
 # 1.3.1
 
 ### 📱 Her ekrana uyum (telefon, tablet)

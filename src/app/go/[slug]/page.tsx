@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
 import { recordClick, utmFromSearchParams } from '@/lib/analytics'
+import { getClientIp, isRateLimited, isSafeUrl } from '@/lib/security'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,17 +80,22 @@ export default async function ShortLink({ params, searchParams }: PageProps) {
     redirect(`/?link=${link.id}`)
   }
 
-  // Analytics verisi kaydet (server-side)
+  // Analytics verisi kaydet (server-side). Yönlendirme her zaman yapılır; ama aynı IP dakikada
+  // 30'dan fazla tıklama kaydettiremez (sayaç şişirme ve veritabanı büyütme engeli, click API ile aynı)
   try {
-    await recordClick(link.id, headers(), {
-      referrer: headers().get('referer') || '',
-      utm: utmFromSearchParams(searchParams || {}),
-    })
+    const ip = getClientIp(headers() as unknown as Headers)
+    if (!isRateLimited(`click:${ip}`, 30, 60 * 1000)) {
+      await recordClick(link.id, headers(), {
+        referrer: headers().get('referer') || '',
+        utm: utmFromSearchParams(searchParams || {}),
+      })
+    }
   } catch (error) {
     console.error('Analytics tracking error:', error)
     // Hata olsa da devam et
   }
 
-  // Hedef URL'ye yönlendir
+  // Hedef URL'ye yönlendir (yalnızca http(s)/mailto/tel)
+  if (!isSafeUrl(link.url)) redirect('/')
   redirect(link.url)
 }

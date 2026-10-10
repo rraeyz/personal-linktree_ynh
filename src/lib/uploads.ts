@@ -34,7 +34,9 @@ export function isUploadKind(value: unknown): value is UploadKind {
   return typeof value === 'string' && value in PRESETS
 }
 
-const ALLOWED_INPUT_FORMATS = new Set(['jpeg', 'png', 'webp', 'gif', 'avif', 'heif', 'tiff'])
+// sharp AVIF'i 'heif' olarak bildirir, o yüzden heif açık. tiff kapalı: web için gerekmiyor ve
+// çözücüsü gereksiz saldırı yüzeyi (yükleme arayüzü de tiff kabul etmiyor)
+const ALLOWED_INPUT_FORMATS = new Set(['jpeg', 'png', 'webp', 'gif', 'avif', 'heif'])
 
 // Görseli doğrular, yeniden kodlar (EXIF/konum bilgisi silinir) ve kaydeder. Herkese açık yolu döner.
 export async function saveUploadedImage(buffer: Buffer, kind: UploadKind): Promise<string> {

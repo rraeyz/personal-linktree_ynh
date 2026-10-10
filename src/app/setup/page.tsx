@@ -14,6 +14,8 @@ export default function SetupPage() {
   const [adminPassword, setAdminPassword] = useState('')
   const [adminPasswordConfirm, setAdminPasswordConfirm] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
+  const [setupToken, setSetupToken] = useState('')
+  const [tokenRequired, setTokenRequired] = useState(false)
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
   const [pageTitle, setPageTitle] = useState('')
@@ -24,6 +26,8 @@ export default function SetupPage() {
     // Auto-detect base URL
     if (typeof window !== 'undefined') {
       setBaseUrl(`${window.location.protocol}//${window.location.host}`)
+      // YunoHost kurulumunun sonunda verilen link: /setup?token=...
+      setSetupToken(new URLSearchParams(window.location.search).get('token') || '')
     }
   }, [])
 
@@ -33,6 +37,7 @@ export default function SetupPage() {
       const data = await response.json()
       
       if (data.setupRequired) {
+        setTokenRequired(!!data.tokenRequired)
         setStep(data.step)
       } else {
         router.push('/admin/login')
@@ -69,7 +74,8 @@ export default function SetupPage() {
           data: {
             adminUsername,
             adminPassword,
-            baseUrl
+            baseUrl,
+            setupToken,
           }
         })
       })
@@ -178,6 +184,26 @@ export default function SetupPage() {
         {/* Initial Setup Form */}
         {step === 'initial' && (
           <form onSubmit={handleInitialSetup} className="space-y-6">
+            {tokenRequired && (
+              <div>
+                <label htmlFor="setupToken" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Kurulum Anahtarı *
+                </label>
+                <input
+                  id="setupToken"
+                  type="text"
+                  value={setupToken}
+                  onChange={(e) => setSetupToken(e.target.value.trim())}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+                  autoComplete="off"
+                  required
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  YunoHost kurulumunun sonunda gösterilen linkle açtıysanız otomatik dolar. Kaybettiyseniz sunucuda:{' '}
+                  <code>sudo yunohost app setting kunye setup_token</code>
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Admin Kullanıcı Adı *

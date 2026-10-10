@@ -38,8 +38,11 @@ fetch_app_source
 # Prisma schema'yı data dizinine kopyala (volume için)
 cp "$install_dir/prisma/schema.prisma" "$data_dir/prisma/"
 
-# Boş .env dosyası oluştur (Setup wizard dolduracak)
-touch "$data_dir/.env"
+# .env'yi kurulum sihirbazı doldurur. Şimdilik içinde yalnızca tek kullanımlık kurulum anahtarı var:
+# sihirbazda admin hesabını yalnızca bu anahtarı bilen açabilir (yoksa siteyi ilk açan admin olurdu).
+setup_token=$(ynh_string_random --length=32)
+ynh_app_setting_set --app="$app" --key=setup_token --value="$setup_token"
+echo "SETUP_TOKEN=$setup_token" > "$data_dir/.env"
 chmod 600 "$data_dir/.env"
 
 #=================================================
@@ -100,4 +103,6 @@ setup_backup_cron
 #=================================================
 # END OF SCRIPT
 #=================================================
+ynh_print_info --message="Kurulumu tamamlamak için açın: https://$domain${path%/}/setup?token=$setup_token"
+
 ynh_script_progression --message="Installation of $app completed" --last

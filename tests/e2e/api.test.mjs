@@ -32,11 +32,22 @@ async function req(path, { method = 'GET', body, cookie, headers = {}, json = tr
 
 let admin // oturum cookie'si
 
+// Container SETUP_TOKEN ile başlatıldıysa (CI ve YunoHost kurulumu) sihirbaz anahtarsız tamamlanamaz
+const SETUP_TOKEN = process.env.SETUP_TOKEN || ''
+
 test('kurulum sihirbazı', async () => {
-  assert.deepEqual((await req('/api/setup')).data, { setupRequired: true, step: 'initial' })
+  assert.deepEqual((await req('/api/setup')).data, { setupRequired: true, step: 'initial', tokenRequired: !!SETUP_TOKEN })
   assert.equal((await req('/')).status, 307, 'kurulum yokken ana sayfa /setup\'a yönlenmeli')
 
-  const initial = await req('/api/setup', { method: 'POST', body: { step: 'initial', data: { adminUsername: 'admin', adminPassword: PASSWORD, baseUrl: B } } })
+  if (SETUP_TOKEN) {
+    for (const setupToken of [undefined, 'yanlis-anahtar', SETUP_TOKEN.slice(0, -1)]) {
+      const denied = await req('/api/setup', { method: 'POST', body: { step: 'initial', data: { adminUsername: 'evil', adminPassword: 'hackedhacked', setupToken } } })
+      assert.equal(denied.status, 403, `kurulum anahtarı olmadan/yanlışken admin oluşturulmamalı (${setupToken})`)
+    }
+    assert.equal((await req('/api/setup')).data.setupRequired, true, 'reddedilen deneme kurulumu tamamlamamalı')
+  }
+
+  const initial = await req('/api/setup', { method: 'POST', body: { step: 'initial', data: { adminUsername: 'admin', adminPassword: PASSWORD, baseUrl: B, setupToken: SETUP_TOKEN } } })
   assert.equal(initial.status, 200)
   admin = initial.cookie
   assert.ok(admin, 'kurulum oturum açmalı')

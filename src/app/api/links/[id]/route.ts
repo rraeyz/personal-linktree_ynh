@@ -19,8 +19,9 @@ export async function PUT(
     }
 
     const body = await request.json()
-    // URL doğrulaması için tip gönderilmediyse mevcut tip kullanılır
-    const result = await buildLinkData({ ...body, type: body.type ?? existing.type }, existing.password)
+    // Doğrulama birleşik kayıt üzerinden yapılır: tip gönderilmediyse mevcut tip, URL gönderilmediyse
+    // mevcut URL kullanılır (yalnızca tipi değiştirerek doğrulanmamış bir URL yayına alınamasın)
+    const result = await buildLinkData({ url: existing.url, ...body, type: body.type ?? existing.type }, existing.password)
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }

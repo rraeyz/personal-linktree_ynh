@@ -1,3 +1,4 @@
+import { escapeHtml } from '@/lib/security'
 // Email Template Generator - Profesyonel HTML Email Şablonu
 
 interface SocialLink {
@@ -104,7 +105,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
+  <title>${escapeHtml(subject)}</title>
   <style>
     body {
       margin: 0;
@@ -214,7 +215,7 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
                   <!-- Daire bir tablo hücresi: ikon her e-posta istemcisinde yatay ve dikey ortalanır -->
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
                     <td width="44" height="44" align="center" valign="middle" bgcolor="${link.color}" style="width: 44px; height: 44px; border-radius: 50%; background-color: ${link.color}; text-align: center; vertical-align: middle; line-height: 0; font-size: 0;">
-                      <a href="${link.url}" title="${link.platform}" style="display: inline-block; line-height: 0; text-decoration: none;">
+                      <a href="${escapeHtml(link.url)}" title="${link.platform}" style="display: inline-block; line-height: 0; text-decoration: none;">
                         <img src="${link.icon}" alt="${link.platform}" width="22" height="22" style="display: block; border: 0;" />
                       </a>
                     </td>
@@ -234,12 +235,12 @@ export function generateEmailHTML(options: EmailTemplateOptions): string {
         <td align="center" style="padding: 0 20px;">
           ${companyName ? `
             <div style="font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-              ${companyName}
+              ${escapeHtml(companyName)}
             </div>
           ` : ''}
           ${companyAddress ? `
             <div style="color: #666666; font-size: 14px; margin-bottom: 15px;">
-              ${companyAddress}
+              ${escapeHtml(companyAddress)}
             </div>
           ` : ''}
           
