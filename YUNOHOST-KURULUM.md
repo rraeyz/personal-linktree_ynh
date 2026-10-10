@@ -5,7 +5,7 @@ Uygulama YunoHost üzerinde Docker container olarak çalışır; nginx, SSL, yed
 **Gereksinimler:** YunoHost 11.3 veya üstü (12.x önerilir), ~1 GB RAM (build sırasında), ~500 MB disk. Docker kurulum sırasında otomatik kurulur.
 
 > **Kaynak kod nereden geliyor?** Kurulum, güncelleme ve geri yükleme script'leri uygulama kodunu
-> `scripts/_common.sh` içindeki `source_repo` / `source_branch` adresinden çeker (bu repo: `personal-linktree_ynh`, `main` branch'i).
+> `scripts/_common.sh` içindeki `source_repo` / `source_branch` adresinden çeker (bu repo: `kunye_ynh`, `main` branch'i).
 > Yani bir değişikliği denemek için önce `main`'e alınmış olması gerekir.
 
 ## 1. Test domaininde kurulum
@@ -18,7 +18,7 @@ sudo yunohost domain add test.ornek.com
 sudo yunohost domain cert install test.ornek.com
 
 # Uygulamayı kurun
-sudo yunohost app install https://github.com/rraeyz/personal-linktree_ynh \
+sudo yunohost app install https://github.com/rraeyz/kunye_ynh \
   --args "domain=test.ornek.com&path=/&init_main_permission=visitors"
 ```
 
@@ -48,12 +48,25 @@ Bu komut nginx ayarını yeni domaine taşır ve container'ı yeni adresle yenid
 
 ```bash
 sudo yunohost app upgrade personal_linktree \
-  -u https://github.com/rraeyz/personal-linktree_ynh --force
+  -u https://github.com/rraeyz/kunye_ynh --force
 ```
 
 - Yeni imaj derlenirken eski sürüm çalışmaya devam eder, kesinti yalnızca container değişirken birkaç saniyedir.
 - Açılışta veritabanı şeması otomatik güncellenir (`db-migrate.js`). Değişiklikten önce `prisma/dev.db.before-migrate-<tarih>` adıyla yedek alınır.
 - `--force`, sürüm numarası değişmediğinde de güncellemeyi zorlar.
+
+### Uygulamanın adı (etiketi)
+
+Kurulumda önerilen ad **Künye**'dir; kurulum ekranında istediğiniz adı yazabilirsiniz. Uygulama kimliği
+(`personal_linktree`) komutlarda ve klasör adlarında aynen kalır; mevcut kurulumun güncellenebilmesi ve
+verilerin yerinde kalması için değişmez.
+
+Daha önce "Personal Linktree" adıyla kurduysanız güncelleme etiketi kendiliğinden değiştirmez. Değiştirmek için
+yönetim panelinde **Uygulamalar → uygulama → Etiket** alanını kullanın ya da:
+
+```bash
+sudo yunohost user permission update personal_linktree.main --label "Künye"
+```
 
 ## 4. Yedekleme ve geri yükleme
 
@@ -110,7 +123,7 @@ Her değişiklik bu repoya bir pull request (PR) ile gelir. Bir güncelleme soru
 1. GitHub'da o PR'ın sayfasını açın, altta **Revert** butonuna basın; açılan geri alma PR'ını birleştirin.
 2. Sunucuda güncellemeyi yeniden çalıştırın:
    ```bash
-   sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/personal-linktree_ynh --force
+   sudo yunohost app upgrade personal_linktree -u https://github.com/rraeyz/kunye_ynh --force
    ```
 
 Veritabanına eklenen yeni kolonlar geri almada silinmez; eski sürüm onları yok sayar, veriler korunur.

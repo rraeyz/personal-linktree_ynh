@@ -7,8 +7,8 @@ Thank you for your interest in contributing! This document provides guidelines f
 1. **Fork the repository**
 2. **Clone your fork:**
    ```bash
-   git clone https://github.com/rraeyz/personal-linktree_ynh.git
-   cd personal-linktree_ynh
+   git clone https://github.com/rraeyz/kunye_ynh.git
+   cd kunye_ynh
    ```
 3. **Install dependencies (Node.js 20):**
    ```bash

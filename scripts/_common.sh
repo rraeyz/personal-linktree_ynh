@@ -4,9 +4,8 @@
 # COMMON VARIABLES AND HELPERS
 #=================================================
 
-# Kaynak kodun çekildiği repo. Deneme reposu (personel-linktree-deneme_ynh) kendi kopyasında
-# kendi adresini kullanır; ana repo bu adresi kullanır.
-source_repo="https://github.com/rraeyz/personal-linktree_ynh.git"
+# Kaynak kodun çekildiği repo (eski adı personal-linktree_ynh; GitHub eski adresi de yönlendirir)
+source_repo="https://github.com/rraeyz/kunye_ynh.git"
 source_branch="main"
 
 # Kaynak kodu GitHub'dan çekip install_dir'e kopyalar.
