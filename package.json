@@ -1,12 +1,12 @@
 {
   "name": "personal-linktree",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/rraeyz/personal-linktree_ynh.git"
+    "url": "https://github.com/rraeyz/kunye_ynh.git"
   },
-  "homepage": "https://github.com/rraeyz/personal-linktree_ynh",
+  "homepage": "https://github.com/rraeyz/kunye_ynh",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

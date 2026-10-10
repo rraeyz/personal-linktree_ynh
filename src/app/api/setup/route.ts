@@ -10,14 +10,26 @@ export const dynamic = 'force-dynamic'
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_.@-]{3,64}$/
 
+// YunoHost kurulumu tek kullanımlık bir kurulum anahtarı üretir (.env → SETUP_TOKEN) ve kurulum
+// sonunda linkini gösterir. Anahtar tanımlıysa admin hesabını yalnızca onu bilen açabilir;
+// yoksa kurulumdan sonra siteyi ilk açan kişi admin olabilirdi.
+function isSetupTokenValid(given: unknown): boolean {
+  const expected = process.env.SETUP_TOKEN
+  if (!expected) return true
+  const a = Buffer.from(String(given ?? ''))
+  const b = Buffer.from(expected)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
 export async function GET() {
+  const tokenRequired = !!process.env.SETUP_TOKEN
   try {
     if (await isSetupComplete()) {
       return NextResponse.json({ setupRequired: false })
     }
-    return NextResponse.json({ setupRequired: true, step: 'initial' })
+    return NextResponse.json({ setupRequired: true, step: 'initial', tokenRequired })
   } catch (error) {
-    return NextResponse.json({ setupRequired: true, step: 'initial' })
+    return NextResponse.json({ setupRequired: true, step: 'initial', tokenRequired })
   }
 }
 
@@ -36,6 +48,13 @@ export async function POST(request: NextRequest) {
       if (setupComplete) {
         return NextResponse.json(
           { success: false, error: 'Kurulum zaten tamamlanmış' },
+          { status: 403 }
+        )
+      }
+
+      if (!isSetupTokenValid(data.setupToken)) {
+        return NextResponse.json(
+          { success: false, error: 'Kurulum anahtarı hatalı. Kurulumun sonunda gösterilen linki kullanın.' },
           { status: 403 }
         )
       }

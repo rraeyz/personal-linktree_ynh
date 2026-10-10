@@ -1,4 +1,4 @@
-# Personal Linktree
+# Künye
 
 Kendi sunucunuzda çalışan, analitikli ve bültenli bir "link in bio" sayfası. Tüm veriler sizde kalır: SQLite veritabanı ve yüklenen görseller tek bir klasörde durur.
 

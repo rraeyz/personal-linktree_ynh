@@ -16,6 +16,7 @@ import SpotifyBlock from '@/components/blocks/SpotifyBlock'
 import CountdownBlock from '@/components/blocks/CountdownBlock'
 import PortfolioCard from '@/components/blocks/PortfolioCard'
 import { parseImages, spotifyEmbedUrl } from '@/lib/links'
+import { isSafeUrl } from '@/lib/security'
 import { renderLinkIcon } from '@/lib/linkIcon'
 import { hasInlineImages, migrateInlineImages } from '@/lib/uploads'
 import { redirect } from 'next/navigation'
@@ -66,7 +67,11 @@ export default async function Home({ searchParams }: { searchParams?: { link?: s
 
   // Tarih kontrolü - sadece aktif scheduled links göster
   const now = new Date()
-  const links = allLinks.filter(link => {
+  const links = allLinks.map((link) => ({
+    ...link,
+    // Son savunma hattı: http(s)/mailto/tel dışındaki adresler (ör. javascript:) sayfaya hiç çıkmaz
+    url: isSafeUrl(link.url) ? link.url : '',
+  })).filter(link => {
     // Başlangıç tarihi varsa ve henüz gelmemişse, gösterme
     if (link.startDate && new Date(link.startDate) > now) {
       return false

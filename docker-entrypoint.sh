@@ -2,7 +2,7 @@
 set -e
 
 # ============================================
-# Personal Linktree - Docker Entrypoint
+# Künye - Docker Entrypoint
 # ============================================
 
 # İlk kurulumda database template'den kopyala

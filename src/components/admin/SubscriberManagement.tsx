@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { FaEnvelope, FaTrash, FaDownload, FaSearch, FaUserPlus, FaPaperPlane } from 'react-icons/fa'
 import RichTextEditor from './RichTextEditor'
+import { CSV_BOM, csvRow } from '@/lib/csv'
 
 export default function SubscriberManagement() {
   const [subscribers, setSubscribers] = useState<any[]>([])
@@ -47,13 +48,13 @@ export default function SubscriberManagement() {
   }
 
   const handleExportCSV = () => {
-    const csv = [
-      ['Email', 'İsim', 'Kayıt Tarihi'].join(','),
-      ...subscribers.map(s => [
+    const csv = CSV_BOM + [
+      csvRow(['Email', 'İsim', 'Kayıt Tarihi']),
+      ...subscribers.map(s => csvRow([
         s.email,
         s.name || '-',
         new Date(s.createdAt).toLocaleDateString('tr-TR')
-      ].join(','))
+      ]))
     ].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })

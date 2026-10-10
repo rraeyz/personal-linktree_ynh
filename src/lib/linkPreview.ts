@@ -27,6 +27,27 @@ const PRIVATE_V4: Array<[string, number]> = [
   ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 4], ['240.0.0.0', 4],
 ]
 
+// IPv6 adresini 8 adet 16 bitlik parçaya açar ("::" kısaltması ve sondaki a.b.c.d biçimi dahil)
+function ipv6Hextets(ip: string): number[] | null {
+  let value = ip.toLowerCase().split('%')[0]
+  const dotted = value.match(/^(.*:)(\d+\.\d+\.\d+\.\d+)$/)
+  if (dotted) {
+    if (!net.isIPv4(dotted[2])) return null
+    const v4 = ipv4ToInt(dotted[2])
+    value = `${dotted[1]}${(v4 >>> 16).toString(16)}:${(v4 & 0xffff).toString(16)}`
+  }
+  const halves = value.split('::')
+  if (halves.length > 2) return null
+  const head = halves[0] ? halves[0].split(':') : []
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(':') : []
+  const fill = halves.length === 2 ? Array(8 - head.length - tail.length).fill('0') : []
+  const parts = [...head, ...fill, ...tail]
+  if (parts.length !== 8 || !parts.every((part) => /^[0-9a-f]{1,4}$/.test(part))) return null
+  return parts.map((part) => parseInt(part, 16))
+}
+
+const hextetsToIpv4 = (h: number[]) => [h[6] >> 8, h[6] & 0xff, h[7] >> 8, h[7] & 0xff].join('.')
+
 export function isPublicAddress(ip: string): boolean {
   if (net.isIPv4(ip)) {
     const value = ipv4ToInt(ip)
@@ -36,13 +57,17 @@ export function isPublicAddress(ip: string): boolean {
     })
   }
   if (net.isIPv6(ip)) {
-    const lower = ip.toLowerCase()
-    const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)
-    if (mapped) return isPublicAddress(mapped[1])
-    if (lower === '::' || lower === '::1') return false
-    if (/^f[cd]/.test(lower)) return false // fc00::/7 özel
-    if (/^fe[89ab]/.test(lower)) return false // fe80::/10 link-local
-    if (/^ff/.test(lower)) return false // multicast
+    const h = ipv6Hextets(ip)
+    if (!h) return false
+    // İçinde IPv4 taşıyan biçimler o IPv4'e göre denetlenir: ::ffff:7f00:1 (= 127.0.0.1), ::a.b.c.d,
+    // 64:ff9b::/96 (NAT64). :: ve ::1 de buradan 0.0.0.x olarak engellenir.
+    const zeros = (from: number, to: number) => h.slice(from, to).every((part) => part === 0)
+    if (zeros(0, 5) && (h[5] === 0xffff || h[5] === 0)) return isPublicAddress(hextetsToIpv4(h))
+    if (h[0] === 0x64 && h[1] === 0xff9b && zeros(2, 6)) return isPublicAddress(hextetsToIpv4(h))
+    if (h[0] === 0x2002) return isPublicAddress([h[1] >> 8, h[1] & 0xff, h[2] >> 8, h[2] & 0xff].join('.')) // 6to4
+    if ((h[0] & 0xfe00) === 0xfc00) return false // fc00::/7 özel
+    if ((h[0] & 0xffc0) === 0xfe80) return false // fe80::/10 link-local
+    if ((h[0] & 0xff00) === 0xff00) return false // multicast
     return true
   }
   return false

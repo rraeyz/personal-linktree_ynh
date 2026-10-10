@@ -36,8 +36,10 @@ jobs:
       - name: Container'ı başlat
         run: |
           mkdir -p "$RUNNER_TEMP/data/prisma" "$RUNNER_TEMP/data/uploads"
-          touch "$RUNNER_TEMP/data/.env"
+          # YunoHost kurulumu gibi: .env'de tek kullanımlık kurulum anahtarı
+          echo "SETUP_TOKEN=ci-setup-token-0123456789" > "$RUNNER_TEMP/data/.env"
           docker run -d --name linktree -p 3000:3000 \
+            --env-file "$RUNNER_TEMP/data/.env" \
             -v "$RUNNER_TEMP/data/prisma:/app/prisma" \
             -v "$RUNNER_TEMP/data/uploads:/app/public/uploads" \
             -v "$RUNNER_TEMP/data/.env:/app/.env" \
@@ -55,6 +57,7 @@ jobs:
       - name: API testleri (tests/e2e/api.test.mjs)
         env:
           BASE_URL: http://localhost:3000
+          SETUP_TOKEN: ci-setup-token-0123456789
         run: node --test tests/e2e/api.test.mjs
 
       - name: Container içi araçlar (yedekleme, migration)

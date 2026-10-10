@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { normalizeProfileCard } from '@/lib/profile'
 import { isAuthenticated } from '@/lib/auth'
+import { isSafeUrl } from '@/lib/security'
+import { LINK_TYPES } from '@/lib/links'
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,11 +111,12 @@ export async function POST(request: NextRequest) {
         await prisma.link.create({
           data: {
             title: link.title,
-            url: link.url,
+            // Yedek dosyası elle düzenlenmiş olabilir: güvensiz adres (ör. javascript:) ve bilinmeyen tip alınmaz
+            url: isSafeUrl(link.url) ? link.url.trim() : '',
             icon: link.icon,
             enabled: link.enabled,
             order: link.order,
-            type: link.type || 'link',
+            type: (LINK_TYPES as readonly string[]).includes(link.type) ? link.type : 'link',
             category: link.category || '',
             slug: link.slug || '',
             passwordHint: link.passwordHint || '',

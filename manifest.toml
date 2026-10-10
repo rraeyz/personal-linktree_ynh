@@ -2,19 +2,19 @@
 
 packaging_format = 2
 
-id = "personal_linktree"
-name = "Personal Linktree"
-description.en = "Self-hosted link tree with analytics, custom email, and rich features"
-description.tr = "Analytics, özel email ve zengin özelliklere sahip kendi sunucunuzda link tree"
+id = "kunye"
+name = "Künye"
+description.en = "Self-hosted link-in-bio page with analytics, newsletter and custom email"
+description.tr = "Kendi sunucunuzda analitikli ve bültenli kişisel link sayfası"
 
-version = "1.3.1~ynh1"
+version = "1.4.0~ynh1"
 
 maintainers = ["rraeyz"]
 
 [upstream]
 license = "MIT"
-code = "https://github.com/rraeyz/personal-linktree_ynh"
-admindoc = "https://github.com/rraeyz/personal-linktree_ynh/blob/main/README.md"
+code = "https://github.com/rraeyz/kunye_ynh"
+admindoc = "https://github.com/rraeyz/kunye_ynh/blob/main/README.md"
 
 [integration]
 yunohost = ">= 11.3"
@@ -29,8 +29,8 @@ ram.runtime = "512M"
 [install]
     [install.domain]
     type = "domain"
-    help.en = "Choose a domain for your linktree"
-    help.tr = "Linktree'niz için bir domain seçin"
+    help.en = "Choose a domain for your page"
+    help.tr = "Sayfanız için bir domain seçin"
 
     [install.path]
     type = "path"
@@ -41,8 +41,8 @@ ram.runtime = "512M"
     [install.init_main_permission]
     type = "group"
     default = "visitors"
-    help.en = "Who can access the public linktree page"
-    help.tr = "Herkese açık linktree sayfasına kimler erişebilir"
+    help.en = "Who can access the public page"
+    help.tr = "Herkese açık sayfaya kimler erişebilir"
 
 [resources]
     [resources.system_user]

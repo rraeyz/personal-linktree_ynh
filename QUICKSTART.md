@@ -3,7 +3,7 @@
 Kendi bilgisayarınızda birkaç dakikada denemek için (Docker gerekir):
 
 ```bash
-git clone https://github.com/rraeyz/personal-linktree_ynh.git linktree
+git clone https://github.com/rraeyz/kunye_ynh.git linktree
 cd linktree
 ./start.sh
 ```

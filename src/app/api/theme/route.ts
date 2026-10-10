@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
+import { toClientProfile } from '@/lib/profile'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function PUT(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(updatedProfile)
+    return NextResponse.json(toClientProfile(updatedProfile))
   } catch (error) {
     console.error('Theme update error:', error)
     return NextResponse.json(

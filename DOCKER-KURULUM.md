@@ -7,7 +7,7 @@ YunoHost kullanıyorsanız [YUNOHOST-KURULUM.md](YUNOHOST-KURULUM.md) dosyasına
 ## Kurulum
 
 ```bash
-git clone https://github.com/rraeyz/personal-linktree_ynh.git linktree
+git clone https://github.com/rraeyz/kunye_ynh.git linktree
 cd linktree
 ./start.sh
 ```
