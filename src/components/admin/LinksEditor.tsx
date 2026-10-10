@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FaPlus, FaTrash, FaTimes, FaGripVertical, FaSave, FaChartBar, FaFolder, FaEdit, FaLock, FaClock, FaStar, FaChevronUp, FaChevronDown } from 'react-icons/fa'
 import ScheduleStatus from '@/components/ScheduleStatus'
 import ImageUploadButton from './ImageUploadButton'
+import SelectMenu from './SelectMenu'
 import {
   DndContext,
   closestCenter,
@@ -366,14 +367,16 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
             <button type="button" onClick={() => set({ useCustomIcon: true })} className={`flex-1 px-3 py-2 rounded-lg text-sm ${form.useCustomIcon ? 'bg-purple-500 text-white' : 'bg-dark-card text-gray-400'}`}>Özel ikon (URL)</button>
           </div>
           {!form.useCustomIcon ? (
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400">
-                {(() => { const IconComponent = getIconComponent(form.icon); return <IconComponent className="w-5 h-5" /> })()}
-              </div>
-              <select value={form.icon} onChange={(e) => set({ icon: e.target.value })} className={`${inputClass} pl-12`}>
-                {popularIcons.map((icon) => <option key={icon.name} value={icon.name}>{icon.label}</option>)}
-              </select>
-            </div>
+            <SelectMenu
+              ariaLabel="İkon"
+              value={form.icon}
+              onChange={(icon) => set({ icon })}
+              options={popularIcons.map((icon) => {
+                const IconComponent = getIconComponent(icon.name)
+                return { value: icon.name, label: icon.label, icon: <IconComponent className="w-4 h-4 shrink-0 text-purple-400" /> }
+              })}
+              className={inputClass}
+            />
           ) : (
             <input type="url" value={form.customIconUrl} onChange={(e) => set({ customIconUrl: e.target.value })} className={inputClass} placeholder="https://example.com/icon.png" />
           )}
@@ -383,10 +386,13 @@ function LinkFormFields({ form, setForm, mode }: { form: FormData; setForm: (f: 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>Kategori (opsiyonel)</label>
-          <select value={form.category} onChange={(e) => set({ category: e.target.value })} className={inputClass}>
-            <option value="">Kategorisiz</option>
-            {linkCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+          <SelectMenu
+            ariaLabel="Kategori"
+            value={form.category}
+            onChange={(category) => set({ category })}
+            options={[{ value: '', label: 'Kategorisiz' }, ...linkCategories.map((cat) => ({ value: cat, label: cat }))]}
+            className={inputClass}
+          />
           <p className="text-xs text-gray-500 mt-1">Sitede kategori sekmeleri olarak görünür (Profil → Profil kartı).</p>
         </div>
         {has('slug') && (

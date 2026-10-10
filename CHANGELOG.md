@@ -1,3 +1,12 @@
+# 1.4.2
+
+### 🐞 Açılır menüler
+- Admin panelindeki tüm açılır menüler (yedek türü, veri saklama süresi, yazı tipi, ikon, kategori, abonelerden ekle) artık tarayıcının yerel listesi yerine panelin kendi menüsünü kullanıyor. Bazı Linux masaüstlerinde (KDE Plasma / Wayland, Chromium ve Brave) yerel liste kutunun üstüne açılıyordu; fare bırakılınca imlecin altındaki seçenek seçilip liste kapanıyordu.
+- Yeni menü koyu temaya uyuyor, seçili seçeneği işaretliyor, ikon seçicide ikonları gösteriyor. Klavyeyle de kullanılabiliyor: Enter/↓ açar, ↑↓ gezinir, Enter seçer, Esc kapatır.
+
+### 🔤 Yazı tipleri
+- Yazı tipleri derleme sırasında Google Fonts'tan indirilmek yerine npm paketlerinden (Fontsource) geliyor. Google'ın yanıtı ara sıra derlemeyi (CI, YunoHost kurulumu ve güncellemesi) bozuyordu. Görünüm aynı, yazı tipleri yine siteden servis ediliyor.
+
 # 1.4.1
 
 ### 💾 Yedekleme (Ayarlar → Yedekleme)

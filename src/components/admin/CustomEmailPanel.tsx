@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FaPaperPlane, FaUser, FaUsers, FaFlask, FaTrashAlt, FaExclamationTriangle } from 'react-icons/fa'
 import RichTextEditor from './RichTextEditor'
+import SelectMenu from './SelectMenu'
 import type { AdminTab } from './adminNav'
 
 type Audience = 'people' | 'subscribers'
@@ -219,20 +220,18 @@ export default function CustomEmailPanel({ onNavigate }: { onNavigate?: (tab: Ad
                   {recipientList.length} alıcı{tooMany ? ` · en fazla ${MAX_RECIPIENTS}` : ''} · her kişiye ayrı e-posta gider, adresler birbirini görmez
                 </span>
                 {subscribers.length > 0 && (
-                  <select
-                    aria-label="Abonelerden ekle"
+                  <SelectMenu
+                    ariaLabel="Abonelerden ekle"
                     value=""
-                    onChange={(e) => {
-                      const email = e.target.value
+                    placeholder="Abonelerden ekle…"
+                    onChange={(email) => {
                       if (email) setRecipients(recipients.trim() ? `${recipients.trim().replace(/[,;]$/, '')}, ${email}` : email)
                     }}
-                    className="text-xs bg-dark-bg border border-gray-700 rounded-lg text-gray-300 px-2 py-1.5 max-w-[14rem]"
-                  >
-                    <option value="">Abonelerden ekle…</option>
-                    {subscribers.filter((s) => !recipientList.some((r) => r.toLowerCase() === s.email.toLowerCase())).map((s) => (
-                      <option key={s.id} value={s.email}>{s.name ? `${s.name} <${s.email}>` : s.email}</option>
-                    ))}
-                  </select>
+                    options={subscribers
+                      .filter((s) => !recipientList.some((r) => r.toLowerCase() === s.email.toLowerCase()))
+                      .map((s) => ({ value: s.email, label: s.name ? `${s.name} <${s.email}>` : s.email }))}
+                    className="text-xs bg-dark-bg border border-gray-700 rounded-lg text-gray-300 px-2 py-1.5 w-[14rem] max-w-full"
+                  />
                 )}
               </div>
             </>

@@ -118,8 +118,23 @@ for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
     await heading(page, tab)
     await page.waitForTimeout(700)
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-${tab.replace(/\s/g, '_')}.png` })
+    // Yerel <select> kullanılmaz: bazı Linux tarayıcılarında (KDE/Wayland) liste kutunun üstüne açılıp
+    // fare bırakılınca yanlış seçenek seçiliyordu. Yerine SelectMenu bileşeni var.
+    const nativeSelects = await page.locator('main select').count()
+    if (nativeSelects) problems.push(`${tab}: ${nativeSelects} yerel <select> var (SelectMenu kullanılmalı)`)
   }
   await noHorizontalScroll(page, 'admin masaüstü')
+
+  // Açılır menü: tıklayınca açılır ve açık kalır, seçenek tıklanınca seçilip kapanır
+  await nav.getByRole('button', { name: 'Ayarlar', exact: true }).click()
+  const kind = page.getByRole('combobox', { name: 'Yedek türü' })
+  await kind.click()
+  const kindList = page.getByRole('listbox', { name: 'Yedek türü' })
+  await kindList.waitFor()
+  if ((await kind.innerText()).trim() !== 'Tam yedek') problems.push('açılır menü tıklayınca değeri değiştirdi')
+  await kindList.getByRole('option', { name: 'Sayfa ve ayarlar' }).click()
+  await kindList.waitFor({ state: 'detached' })
+  if ((await kind.innerText()).trim() !== 'Sayfa ve ayarlar') problems.push('açılır menüde seçim yapılamadı')
 
   // Komut paleti (Ctrl+K): yazıp Enter ile bölüme gider
   await page.keyboard.press('Control+k')

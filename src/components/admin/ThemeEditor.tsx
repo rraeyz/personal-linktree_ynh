@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FaPalette, FaSave, FaUndo } from 'react-icons/fa'
 import { THEME_PRESETS, FONT_FAMILIES, BORDER_RADIUS_OPTIONS, BUTTON_STYLES, ANIMATION_SPEEDS, BACKGROUND_TYPES } from '@/lib/themes'
 import ImageUploadButton from './ImageUploadButton'
+import SelectMenu from './SelectMenu'
 
 interface ThemeEditorProps {
   initialProfile: any
@@ -302,17 +303,13 @@ export default function ThemeEditor({ initialProfile }: ThemeEditorProps) {
         {/* Font Ailesi */}
         <div className="p-6 bg-dark-card rounded-xl border border-gray-800">
           <h3 className="text-lg font-semibold text-white mb-4">Font Ailesi</h3>
-          <select
+          <SelectMenu
+            ariaLabel="Yazı tipi"
             value={fontFamily}
-            onChange={(e) => setFontFamily(e.target.value)}
+            onChange={setFontFamily}
+            options={FONT_FAMILIES.map((font) => ({ value: font.value, label: font.label }))}
             className="w-full px-4 py-3 bg-dark-bg border border-gray-700 rounded-lg text-white"
-          >
-            {FONT_FAMILIES.map((font) => (
-              <option key={font.value} value={font.value}>
-                {font.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 
